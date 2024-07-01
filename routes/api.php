@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Category\RCategoryController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
 use Illuminate\Http\Request;
@@ -33,6 +34,9 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::get('/user-details', [UserController::class,'userDetails']);
     Route::get('/all-salon', [SalonController::class,'allSalon']);
     Route::get('/add-salon', [SalonController::class,'addSalon']);
+
+    // category
+    Route::resource('/categories', RCategoryController::class)->except('edit','create');
 
 });
 

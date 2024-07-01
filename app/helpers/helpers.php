@@ -37,6 +37,7 @@ function saveImage($request, $type)
         'image' => 'adminAsset/image/',
         'id_card' => 'adminAsset/id_card/',
         'cover-image' => 'adminAsset/cover-image/',
+        'category_image' => 'adminAsset/category_image/',
     ];
 
     if ($request->file($type)) {
