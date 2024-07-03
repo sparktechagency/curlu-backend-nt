@@ -38,6 +38,8 @@ function saveImage($request, $type)
         'id_card' => 'adminAsset/id_card/',
         'cover-image' => 'adminAsset/cover-image/',
         'category_image' => 'adminAsset/category_image/',
+        'service_image' => 'adminAsset/service_image/',
+        'product_image' => 'adminAsset/product_image/',
     ];
 
     if ($request->file($type)) {
