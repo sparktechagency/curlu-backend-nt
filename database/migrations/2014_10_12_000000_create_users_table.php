@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('date_of_birth')->nullable();
             $table->string('role_type');
             $table->string('gender')->nullable();
-            $table->string('user_status')->default('inactive');
+            $table->string('user_status')->default('active');
             $table->string('otp');
             $table->string('google_id')->nullable();
             $table->string('apple_id')->nullable();

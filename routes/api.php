@@ -46,14 +46,15 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::resource('/products',ProductController::class)->except('edit','create');
 
 
+    Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
     Route::resource('/salon-services',BSalonServiceController::class)->except('edit','create');
 });
 
-Route::middleware(['super.admin', 'auth:api'])->group(function (){
-    Route::resource('/admins', ManageAdminController::class)->except('edit','create');
+Route::middleware(['super.admin','auth:api'])->group(function (){
+//    Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 });
 
 //R&D individual barcode generate for each task
