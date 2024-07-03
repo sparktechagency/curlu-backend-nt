@@ -40,6 +40,7 @@ function saveImage($request, $type)
         'category_image' => 'adminAsset/category_image/',
         'service_image' => 'adminAsset/service_image/',
         'product_image' => 'adminAsset/product_image/',
+        'slider_image' => 'adminAsset/slider_image/',
     ];
 
     if ($request->file($type)) {

@@ -84,7 +84,9 @@ class RCategoryController extends Controller
                 'message' => 'Category not found'
             ], 404);
         }
-
+        if ($category->category_image){
+            removeImage($category->category_image);
+        }
         $category->delete();
 
         return response()->json([

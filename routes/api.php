@@ -8,6 +8,7 @@ use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
+use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,8 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
 
 
     Route::resource('/admins', ManageAdminController::class)->except('edit','create');
+
+    Route::resource('/sliders', SliderController::class)->except('edit','create');
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
