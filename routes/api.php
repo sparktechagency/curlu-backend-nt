@@ -1,15 +1,20 @@
 <?php
 
+use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Barbar\BSalonServiceController;
+use App\Http\Controllers\Barbar\HomeController;
 use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
+use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
+use App\Http\Controllers\TermsConditionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -50,10 +55,15 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 
     Route::resource('/sliders', SliderController::class)->except('edit','create');
+
+    Route::resource('/faqs', FaqController::class)->except('edit','create');
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
     Route::resource('/salon-services',BSalonServiceController::class)->except('edit','create');
+
+    Route::get('/show-products', [HomeController::class,'showProducts']);
+
 });
 
 Route::middleware(['super.admin','auth:api'])->group(function (){
@@ -72,3 +82,6 @@ Route::middleware(['super.admin','auth:api'])->group(function (){
 
 
 
+Route::resource('/about-us', AboutUsController::class)->except('edit','create');
+Route::resource('/terms-condition', TermsConditionController::class)->except('edit','create');
+Route::resource('/privacy-policy', PrivacyPolicyController::class)->except('edit','create');

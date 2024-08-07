@@ -160,6 +160,7 @@ class AuthController extends Controller
 
         $user->email_verified_at = now();
         $user->otp = 0;
+        $user->status = 'active';
         $user->save();
         //$result = app('App\Http\Controllers\NotificationController')->sendNotification('Welcome to the Barbar app', $user->created_at, $user);
         return response([
