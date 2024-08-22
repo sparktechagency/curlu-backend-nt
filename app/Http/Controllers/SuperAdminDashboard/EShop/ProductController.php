@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SuperAdminDashboard\Eshop;
+namespace App\Http\Controllers\SuperAdminDashboard\EShop;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
