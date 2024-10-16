@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
 use App\Mail\OtpMail;
 use App\Models\Salon;
-use App\Models\Teacher;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\File;
 
 class AuthController extends Controller
 {
@@ -43,8 +43,10 @@ class AuthController extends Controller
             return response(['message' => 'Please check your email for validate your email.'], 200);
         } else {
             if ($request->role_type == 'USER' || $request->role_type == 'ADMIN' || $request->role_type == 'SUPER ADMIN'){
+
                 $user = new User();
                 $user->name = $request->name;
+                $user->last_name = $request->last_name;
                 $user->email = $request->email;
                 $user->password = Hash::make($request->password);
                 $user->address = $request->address;
@@ -70,6 +72,7 @@ class AuthController extends Controller
                 try {
                     $user = new User();
                     $user->name = $request->name;
+                    $user->last_name = $request->last_name;
                     $user->email = $request->email;
                     $user->password = Hash::make($request->password);
                     $user->address = $request->address;
@@ -187,7 +190,11 @@ class AuthController extends Controller
     {
         if ($this->guard()->user()) {
             $user = $this->guard()->user();
-
+//            if ($user->role_type == 'PROFESSIONAL') {
+//                return response()->json([
+//                    'user' => $user,
+//                ]);
+//            }
             return response()->json([
                 'user' => $user
             ]);
@@ -225,7 +232,7 @@ class AuthController extends Controller
                 'message' => 'Your email is not exists'
             ], 401);
         }
-        if ($user->verify_email == 0) {
+        if ($user->email_verified_at == null) {
             return response()->json([
                 'message' => 'Your email is not verified'
             ], 401);
@@ -241,6 +248,147 @@ class AuthController extends Controller
             return response()->json(['message' => 'Password reset successfully'], 200);
         }
     }
+    public function resendOtp(Request $request)
+    {
+        $user = User::where('email', $request->email)
+            //            ->where('verify_email', 0)
+            ->first();
 
+        if (!$user) {
+            return response()->json(['message' => 'User not found or email already verified'], 404);
+        }
+
+        // Check if OTP resend is allowed (based on time expiration)
+        $currentTime = now();
+        $lastResentAt = $user->last_otp_sent_at;  // Assuming you have a column in your users table to track the last OTP sent time
+
+        // Define your expiration time (e.g., 5 minutes)
+        $expirationTime = 5;  // in minutes
+
+        if ($lastResentAt && $lastResentAt->addMinutes($expirationTime)->isFuture()) {
+            // Resend not allowed yet
+            return response()->json(['message' => 'You can only resend OTP once every ' . $expirationTime . ' minutes'], 400);
+        }
+
+        // Generate new OTP
+        $newOtp = Str::random(6);
+        Mail::to($user->email)->send(new OtpMail($newOtp));
+
+        // Update user data
+        $user->update(['otp' => $newOtp]);
+        $user->update(['email_verified_at' => now()]);
+        $user->update(['last_otp_sent_at' => $currentTime]);
+
+        return response()->json(['message' => 'OTP resent successfully']);
+    }
+
+    public function updateProfile(Request $request)
+    {
+
+        $user = $this->guard()->user();  // Assuming the user is authenticated
+
+        if ($user->role_type == 'USER' || $user->role_type == 'ADMIN' || $user->role_type == 'SUPER ADMIN') {
+            $this->validate($request, [
+                'name' => 'required|string|max:255',
+                'last_name' => 'sometimes|string|max:255',
+                'password' => 'sometimes|confirmed|min:6',
+                'phone' => 'sometimes|string|max:15',
+                'address' => 'sometimes|string|max:255',
+                'date_of_birth' => 'sometimes|date',
+                'gender' => 'sometimes|string|in:male,female,other',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+
+            $user->name = $request->name;
+            $user->last_name = $request->last_name ?? $user->last_name;
+            $user->phone = $request->phone ?? $user->phone;
+            $user->address = $request->address ?? $user->address;
+            $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
+            $user->gender = $request->gender ?? $user->gender;
+            if ($request->file('image')) {
+                $user->image = saveImage($request, 'image');
+            }
+
+            $user->save();
+
+            return response()->json([
+                'message' => 'Profile updated successfully!',
+                'user' => $user
+            ], 200);
+
+        } elseif ($user->role_type == 'PROFESSIONAL') {
+            DB::beginTransaction();
+
+            try {
+                $this->validate($request, [
+                    'name' => 'required|string|max:255',
+                    'last_name' => 'sometimes|string|max:255',
+                    'email' => 'required|email|unique:users,email,' . $user->id,
+                    'password' => 'sometimes|confirmed|min:6',
+                    'phone' => 'sometimes|string|max:15',
+                    'address' => 'sometimes|string|max:255',
+                    'date_of_birth' => 'sometimes|date',
+                    'gender' => 'sometimes|string|in:male,female,other',
+                    'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'experience' => 'sometimes|string|max:255',
+                    'salon_type' => 'sometimes|string|max:255',
+                    'salon_description' => 'sometimes|string|max:500',
+                    'id_card' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'kbis' => 'sometimes|string|max:255',
+                    'iban_number' => 'sometimes|string|max:255',
+                    'cover_image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                ]);
+
+                // Update user basic details
+                $user->name = $request->name;
+                $user->last_name = $request->last_name ?? $user->last_name;
+                $user->email = $request->email;
+                if ($request->password) {
+                    $user->password = Hash::make($request->password);
+                }
+                $user->phone = $request->phone ?? $user->phone;
+                $user->address = $request->address ?? $user->address;
+                $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
+                $user->gender = $request->gender ?? $user->gender;
+
+                if ($request->file('image')) {
+                    $user->image = saveImage($request, 'image');
+                }
+              // $user->save();
+
+                // Update Professional/Salon details
+                $salon = Salon::where('user_id', $user->id)->first();
+
+                $salon->experience = $request->experience ?? $salon->experience;
+                $salon->salon_type = $request->salon_type ?? $salon->salon_type;
+                $salon->salon_description = $request->salon_description ?? $salon->salon_description;
+                if ($request->file('id_card')) {
+                    $salon->id_card = saveImage($request, 'id_card');
+                }
+                $salon->kbis = $request->kbis ?? $salon->kbis;
+                $salon->iban_number = $request->iban_number ?? $salon->iban_number;
+                if ($request->file('cover_image')) {
+                    $salon->cover_image = saveImage($request, 'cover_image');
+                }
+
+                $salon->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Profile and salon details updated successfully!',
+                    'user' => $user,
+                    'salon' => $salon
+                ], 200);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                Log::error('Error updating profile: ' . $e->getMessage());
+                return response()->json(['message' => 'Error updating profile!'], 500);
+            }
+        }
+
+        return response()->json(['message' => 'Invalid role type'], 403);
+    }
 
 }

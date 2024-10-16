@@ -15,6 +15,9 @@ class HomeController extends Controller
         if($request->filled('shop_category_id')){
             $query->where('shop_category_id', $request->input('shop_category_id'));
         }
+        if($request->filled('product_name')){
+            $query->where('product_name', 'like', '%'.$request->input('product_name').'%');
+        }
         if($request->filled('eshop_category_name')){
             $query->whereHas('shop_category', function ($query) use ($request) {
                 $query->where('category_name', $request->input('eshop_category_name'));

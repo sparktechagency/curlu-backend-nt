@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('salons', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('experience');
-            $table->string('salon_type');
-            $table->string('salon_description');
-            $table->string('id_card');
-            $table->string('iban_number');
-            $table->string('kbis');
+            $table->string('experience')->nullable();
+            $table->string('salon_type')->nullable();
+            $table->string('salon_description')->nullable();
+            $table->string('id_card')->nullable();
+            $table->string('iban_number')->nullable();
+            $table->string('kbis')->nullable();
             $table->string('cover_image')->nullable();
             $table->timestamps();
         });

@@ -16,12 +16,13 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:2|max:100',
+            'last_name' => 'required|string|min:2|max:100',
             'email' => 'required|string|email|max:60',
             'image' => 'nullable',
             'address' => 'string|min:2|max:100',
             'phone' => 'nullable|numeric|digits_between:8,12',
             'password' => 'required|string|min:6|confirmed',
-            'gender' => 'required|string|in:Male,Female',
+            'gender' => 'string|in:Male,Female',
             'role_type' => ['required', Rule::in(['USER', 'ADMIN', 'SUPER ADMIN', 'PROFESSIONAL'])],
         ];
     }

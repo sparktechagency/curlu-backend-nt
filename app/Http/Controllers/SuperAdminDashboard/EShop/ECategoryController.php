@@ -18,6 +18,9 @@ class ECategoryController extends Controller
     {
         $category = new ShopCategory();
         $category->category_name = $request->category_name;
+        if ($request->hasFile('category_image') && $request->file('category_image')->isValid()) {
+            $category->category_image = saveImage($request, 'category_image');
+        }
 
         $category->save();
 
@@ -53,6 +56,14 @@ class ECategoryController extends Controller
             ], 404);
         }
         $category->category_name = $request->category_name ?? $category->category_name;
+
+        if ($request->hasFile('category_image') && $request->file('category_image')->isValid()) {
+            if (!empty($category->category_image)) {
+                removeImage($category->category_image);
+            }
+            $category->category_image = saveImage($request, 'category_image');
+        }
+
         $category->save();
 
         return response()->json([
@@ -65,6 +76,9 @@ class ECategoryController extends Controller
     {
         $category = ShopCategory::find($id);
 
+        if ($category->category_image){
+            removeImage($category->category_image);
+        }
         if (!$category) {
             return response()->json([
                 'message' => 'E-Shop Category Does Not Exist'

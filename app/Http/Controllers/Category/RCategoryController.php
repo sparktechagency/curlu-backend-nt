@@ -10,10 +10,34 @@ use Illuminate\Http\Request;
 class RCategoryController extends Controller
 {
 
-    public function index()
+//    public function index(Request $request)
+//    {
+//        $query = Category::query();
+//        if($request->filled('category_name')){
+//            $query = $query->where('category_name',$request->category_name);
+//        }
+//        $category = $query->paginate($request->per_page ?? 10);
+//        return response()->json($category);
+//    }
+
+    public function index(Request $request)
     {
-        return Category::paginate(12);
+        $query = Category::query();
+
+        // Check if 'category_name' is provided and not empty
+        if ($request->filled('category_name')) {
+            // Handle multiple category names
+            $categoryNames = explode(',', $request->category_name); // Support comma-separated names if passed as a string
+            $query = $query->whereIn('category_name', $categoryNames);
+        }
+
+        // Paginate results
+        $category = $query->paginate($request->per_page ?? 10);
+
+        return response()->json($category);
     }
+
+
 
     public function store(CategoryRequest $request)
     {

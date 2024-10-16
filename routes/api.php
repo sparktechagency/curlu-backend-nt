@@ -36,6 +36,7 @@ Route::group([
     Route::post('/update-pass', [AuthController::class, 'updatePassword']);
     Route::put('/profile/edit/{id}', [AuthController::class, 'editProfile']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+    Route::post('/update-profile', [AuthController::class, 'updateProfile']);
 });
 
 //dashboard
@@ -47,7 +48,7 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     // category
     Route::resource('/categories', RCategoryController::class)->except('edit','create');
 
-    Route::resource('/shop-category', ECategoryController::class)->except('edit','create');
+    Route::resource('/shop-category', ECategoryController::class)->except('edit','create','index');
 
     Route::resource('/products',ProductController::class)->except('edit','create');
 
@@ -85,3 +86,9 @@ Route::middleware(['super.admin','auth:api'])->group(function (){
 Route::resource('/about-us', AboutUsController::class)->except('edit','create');
 Route::resource('/terms-condition', TermsConditionController::class)->except('edit','create');
 Route::resource('/privacy-policy', PrivacyPolicyController::class)->except('edit','create');
+
+Route::resource('/shop-category', ECategoryController::class)->only('index');
+
+Route::middleware(['admin.professional.user','auth:api'])->group(function (){
+
+});
