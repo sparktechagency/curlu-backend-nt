@@ -60,5 +60,6 @@ class Kernel extends HttpKernel
         'professional' => \App\Http\Middleware\CheckBarbarMiddleware::class,
         'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         'admin.professional.user' => \App\Http\Middleware\AllRoleCheckMiddleware::class,
+        'user' => \App\Http\Middleware\CheckUserMiddleware::class,
     ];
 }

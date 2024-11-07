@@ -13,10 +13,11 @@ class UserController extends Controller
     {
         $query = User::query()->where('role_type','USER');
 
+        
         if($request->filled('location')){
             $query->where('address', 'like' , '%' . $request->input('location') . '%');
         }
-        $user = $query->paginate(10);
+        $user = $query->paginate($request->per_page ?? 10);
         return response()->json($user,200);
     }
 }

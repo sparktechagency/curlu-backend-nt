@@ -50,9 +50,9 @@ class BSalonServiceController extends Controller
         }
 
         // Paginate the results
-        $services = $query->paginate();
+        $services = $query->paginate($request->per_page ?? 10);
 
-        return response()->json($services);
+        return response()->json(['message'=> 'Success','services' => $services]);
 
     }
 

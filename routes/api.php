@@ -15,6 +15,8 @@ use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
 use App\Http\Controllers\TermsConditionController;
+use App\Http\Controllers\User\UserServiceController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -84,6 +86,7 @@ Route::middleware(['super.admin','auth:api'])->group(function (){
 
 
 
+
 Route::resource('/about-us', AboutUsController::class)->except('edit','create');
 Route::resource('/terms-condition', TermsConditionController::class)->except('edit','create');
 Route::resource('/privacy-policy', PrivacyPolicyController::class)->except('edit','create');
@@ -92,4 +95,15 @@ Route::resource('/shop-category', ECategoryController::class)->only('index');
 
 Route::middleware(['admin.professional.user','auth:api'])->group(function (){
 
+});
+
+
+
+
+//USER role route
+Route::middleware(['user','auth:api'])->group(function (){
+    Route::get('/slider', [UserServiceController::class,'homeSlider']);
+    Route::get('/populer-service', [UserServiceController::class,'populerService']);
+    Route::get('/offer-service', [UserServiceController::class,'serviceOffer']);
+    Route::get('/e-shop', [UserServiceController::class,'eShopProduct']);
 });

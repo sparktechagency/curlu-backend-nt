@@ -14,4 +14,5 @@ class SalonService extends Model
     {
         return $this->belongsTo(Salon::class);
     }
+   
 }
