@@ -41,11 +41,17 @@ Route::group([['middleware' => 'auth:api']], function ($router) {
 
 //dashboard
 Route::middleware(['admin', 'auth:api'])->group(function (){
-    Route::get('/user-details', [UserController::class,'userDetails']);
-    Route::get('/all-salon', [SalonController::class,'allSalon']);
-    Route::get('/add-salon', [SalonController::class,'addSalon']);
 
-    // category
+    // user api
+    Route::get('/user-details', [UserController::class,'userDetails']);
+    Route::put('/user-status/{id}', [UserController::class,'userStatus']);
+
+    // salon api
+    Route::get('/all-salon', [SalonController::class,'allSalon']);
+    Route::post('/add-salon', [SalonController::class,'addSalon']);
+    Route::put('/salon-status/{id}', [SalonController::class,'salonStatus']);
+
+    // category api
     Route::resource('/categories', RCategoryController::class)->except('edit','create');
 
     Route::resource('/shop-category', ECategoryController::class)->except('edit','create','index');
@@ -61,7 +67,10 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
+    // salon service
     Route::resource('/salon-services',BSalonServiceController::class)->except('edit','create');
+    Route::put('/service-status/{id}', [BSalonServiceController::class,'serviceStatus']);
+
 
     Route::get('/show-products', [HomeController::class,'showProducts']);
     Route::get('/logout', [AuthController::class, 'logout']);

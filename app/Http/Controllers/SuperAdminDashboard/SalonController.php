@@ -30,6 +30,7 @@ class SalonController extends Controller
         return response()->json($salons, 200);
     }
 
+
     public function addSalon(Request $request)
     {
         DB::beginTransaction();
@@ -74,5 +75,18 @@ class SalonController extends Controller
             Log::error('Error adding provider: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    public function salonStatus(Request $request, $id)
+    {
+        $user = User::where('id', $id)->first();
+        if ($user->user_status == 'active') {
+            $status = 'inactive';
+        } else {
+            $status = 'active';
+        }
+        $user->user_status = $status;
+        $user->save();
+        return response()->json(['message' => 'Status updated'], 200);
     }
 }

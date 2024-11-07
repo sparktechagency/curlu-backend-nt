@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use App\Models\SalonService;
 use Illuminate\Http\Request;
 
 class RCategoryController extends Controller
@@ -37,8 +38,6 @@ class RCategoryController extends Controller
         return response()->json($category);
     }
 
-
-
     public function store(CategoryRequest $request)
     {
         $category = new Category();
@@ -51,7 +50,7 @@ class RCategoryController extends Controller
 
         return response()->json([
             'message' => 'Category added Successfully',
-            'data' => $category
+            'data' => $category,
         ]);
 
     }
@@ -62,13 +61,13 @@ class RCategoryController extends Controller
 
         if (!$category) {
             return response()->json([
-                'message' => 'Category not found'
+                'message' => 'Category not found',
             ], 404);
         }
 
         return response()->json([
             'message' => 'Category retrieved successfully',
-            'data' => $category
+            'data' => $category,
         ]);
     }
 
@@ -78,7 +77,7 @@ class RCategoryController extends Controller
 
         if (!$category) {
             return response()->json([
-                'message' => 'Category not found'
+                'message' => 'Category not found',
             ], 404);
         }
 
@@ -95,26 +94,33 @@ class RCategoryController extends Controller
 
         return response()->json([
             'message' => 'Category updated successfully',
-            'data' => $category
+            'data' => $category,
         ]);
     }
 
     public function destroy(string $id)
     {
         $category = Category::find($id);
+        $count_service = SalonService::where('category_id', $category->id)->count();
+
+        if ($count_service > 0) {
+            return response()->json([
+                'message' => 'This category contains some services.',
+            ], 400);
+        }
 
         if (!$category) {
             return response()->json([
-                'message' => 'Category not found'
+                'message' => 'Category not found',
             ], 404);
         }
-        if ($category->category_image){
+        if ($category->category_image) {
             removeImage($category->category_image);
         }
         $category->delete();
 
         return response()->json([
-            'message' => 'Category deleted successfully'
+            'message' => 'Category deleted successfully',
         ]);
     }
 }

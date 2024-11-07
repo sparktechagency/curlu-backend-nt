@@ -13,7 +13,7 @@ class BSalonServiceController extends Controller
 
     public function index(Request $request)
     {
-        $query = SalonService::query();
+        $query = SalonService::with('salon','category');
 
         // Search by salon->user->name and address
         if ($request->filled('user_name')) {
@@ -35,10 +35,13 @@ class BSalonServiceController extends Controller
             });
         }
 
-        // Filter by service_status
-        if ($request->has('service_status')) {
-            $query->where('service_status', $request->service_status);
+        // Filter by status
+        if ($request->filled('service_status')) {
+            if ($request->service_status !== 'all') {
+                $query->where('service_status', $request->service_status);
+            }
         }
+
 
         // Filter by price
         if ($request->has('price_min')) {
@@ -60,6 +63,7 @@ class BSalonServiceController extends Controller
     {
         $user_id = auth()->user()->id;
         $salon = Salon::where('user_id',$user_id)->first();
+
 
         if (empty($salon)){
             return response()->json(['error' => 'salon not found'], 404);
@@ -96,5 +100,18 @@ class BSalonServiceController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function serviceStatus(Request $request, $id)
+    {
+        $service = SalonService::where('id', $id)->first();
+        if ($service->service_status == 'active') {
+            $status = 'inactive';
+        } else {
+            $status = 'active';
+        }
+        $service->service_status = $status;
+        $service->save();
+        return response()->json(['message' => 'Status updated'], 200);
     }
 }
