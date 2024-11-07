@@ -391,4 +391,57 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid role type'], 403);
     }
 
+
+
+
+
+
+
+
+    /* Adding new code */
+
+    //verify password reset
+    public function emailVerifiedForResetPass(Request $request){
+
+        // dd($request->otp);
+        if(isset($request->otp)){
+            $user = User::where('otp',$request->otp)->first();
+            // dd($user);
+            if($user){
+                $validator = Validator::make($request->all(),[
+                    'password' => 'required|string|min:6|confirmed'
+                ]);
+            if($validator->fails()){
+                return response()->json($validator->errors(),400);
+            }else{
+                $user->password = Hash::make($request->password);
+                $user->otp = 0;
+                $user->save();
+
+                return response()->json(['message' => 'password reset successfully!'],200);
+            }
+
+            }else{
+                return response()->json(['message' => 'User not found!'],404);
+            }
+        }else{
+            return response()->json(['message' => 'Token Not Found!'],404);
+        }
+    }
+
+
+    //user logout
+
+    public function logout()
+    {
+        try{
+        $this->guard()->logout();
+        return response()->json(['message' => 'Successfully logged out']);
+        }catch(\Exception $e){
+            return response()->json(['message'=> $e->getMessage()]);
+        }
+    }
+   
+
 }
+

@@ -23,9 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::group([
-    ['middleware' => 'auth:api']
-], function ($router) {
+Route::group([['middleware' => 'auth:api']], function ($router) {
     Route::post('/register', [AuthController::class, 'register']);
     Route::get('/email-verified', [AuthController::class, 'emailVerified']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +35,8 @@ Route::group([
     Route::put('/profile/edit/{id}', [AuthController::class, 'editProfile']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+
+    Route::get('/logout', [AuthController::class, 'logout']);
 });
 
 //dashboard
@@ -64,6 +64,7 @@ Route::middleware(['professional', 'auth:api'])->group(function (){
     Route::resource('/salon-services',BSalonServiceController::class)->except('edit','create');
 
     Route::get('/show-products', [HomeController::class,'showProducts']);
+    Route::get('/logout', [AuthController::class, 'logout']);
 
 });
 
