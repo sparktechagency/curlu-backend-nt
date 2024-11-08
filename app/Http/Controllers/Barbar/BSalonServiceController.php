@@ -42,6 +42,10 @@ class BSalonServiceController extends Controller
             }
         }
 
+        //Filter by service_name
+        if ($request->filled('service_name')) {
+            $query->where('service_name', 'LIKE','%'. $request->service_name . '%');
+        }
 
         // Filter by price
         if ($request->has('price_min')) {

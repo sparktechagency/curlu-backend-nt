@@ -6,6 +6,7 @@ use App\Http\Controllers\Barbar\BSalonServiceController;
 use App\Http\Controllers\Barbar\HomeController;
 use App\Http\Controllers\Category\RCategoryController;
 use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\SuperAdminDashboard\DashboardController;
 use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\FaqController;
@@ -42,6 +43,9 @@ Route::group([['middleware' => 'auth:api']], function ($router) {
 //dashboard
 Route::middleware(['admin', 'auth:api'])->group(function (){
 
+    // dashboard api
+    Route::get('/dashboard',[DashboardController::class,'index']);
+
     // user api
     Route::get('/user-details', [UserController::class,'userDetails']);
     Route::put('/user-status/{id}', [UserController::class,'userStatus']);
@@ -54,16 +58,21 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     // category api
     Route::resource('/categories', RCategoryController::class)->except('edit','create');
 
+    // shop-category api
     Route::resource('/shop-category', ECategoryController::class)->except('edit','create','index');
 
+    // products api
     Route::resource('/products',ProductController::class)->except('edit','create');
 
-
+    // admins api
     Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 
     Route::resource('/sliders', SliderController::class)->except('edit','create');
 
     Route::resource('/faqs', FaqController::class)->except('edit','create');
+
+    // salon invoice api
+    Route::get('/salon_invoice',[SalonController::class,'salon_invoice']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){

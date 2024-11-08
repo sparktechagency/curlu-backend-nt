@@ -10,9 +10,14 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        return $products = Product::paginate(12);
+        $products=Product::query();
+        if($request->filled('shop_category_id')){
+            $products=$products->where('shop_category_id',$request->shop_category_id);
+        }
+        $products=$products->paginate(12);
+        return response()->json($products);
     }
 
     public function store(ProductRequest $request)
@@ -50,7 +55,6 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
         $product->shop_category_id = $request->shop_category_id ?? $product->shop_category_id;
         $product->product_name = $request->product_name ?? $product->product_name;
         $product->product_link = $request->product_link ?? $product->product_link;

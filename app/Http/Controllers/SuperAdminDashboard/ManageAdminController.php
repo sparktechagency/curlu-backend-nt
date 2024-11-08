@@ -14,9 +14,8 @@ class ManageAdminController extends Controller
 
     public function index()
     {
-        return User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->paginate();
+        return User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->paginate();
     }
-
 
     public function store(AdminRequest $request)
     {
@@ -28,7 +27,7 @@ class ManageAdminController extends Controller
         $admin->otp = 0;
         $admin->email_verified_at = new Carbon();
         if ($request->file('image')) {
-            $admin->image = saveImage($request,'image');
+            $admin->image = saveImage($request, 'image');
         }
         $admin->save();
         return response()->json(['message' => 'Role assign successfully', 'data' => $admin]);
@@ -36,19 +35,18 @@ class ManageAdminController extends Controller
 
     public function show(string $id)
     {
-        $admin = User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->where('id',$id)->first();
-        if (empty($admin)){
-            return response()->json(['message' => 'User Does Not Exist'],404);
+        $admin = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->where('id', $id)->first();
+        if (empty($admin)) {
+            return response()->json(['message' => 'User Does Not Exist'], 404);
         }
         return response()->json($admin);
     }
 
-
     public function update(Request $request, string $id)
     {
-        $admin = User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->where('id',$id)->first();
-        if (empty($admin)){
-            return response()->json(['message' => 'User Does Not Exist'],404);
+        $admin = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->where('id', $id)->first();
+        if (empty($admin)) {
+            return response()->json(['message' => 'User Does Not Exist'], 404);
         }
         $admin->name = $request->name ?? $admin->name;
         $admin->email = $request->email ?? $admin->email;
@@ -57,7 +55,7 @@ class ManageAdminController extends Controller
         }
         $admin->role_type = $request->role_type ?? $admin->role_type;
         if ($request->file('image')) {
-            if (!empty($admin->image)){
+            if (!empty($admin->image)) {
                 removeImage($admin->image);
             }
             $admin->image = saveImage($request, 'image');
@@ -68,11 +66,11 @@ class ManageAdminController extends Controller
 
     public function destroy(string $id)
     {
-        $admin = User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->where('id',$id)->first();
-        if (empty($admin)){
-            return response()->json(['message' => 'User Does Not Exist'],404);
+        $admin = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->where('id', $id)->first();
+        if (empty($admin)) {
+            return response()->json(['message' => 'User Does Not Exist'], 404);
         }
-        if ($admin->image){
+        if ($admin->image) {
             removeImage($admin->image);
         }
         $admin->delete();
