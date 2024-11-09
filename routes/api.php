@@ -5,12 +5,14 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Barbar\BSalonServiceController;
 use App\Http\Controllers\Barbar\HomeController;
 use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\SuperAdminDashboard\DashboardController;
 use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
+use App\Http\Controllers\SuperAdminDashboard\NotificationController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
@@ -73,6 +75,13 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
 
     // salon invoice api
     Route::get('/salon_invoice',[SalonController::class,'salon_invoice']);
+
+    // notification
+    Route::get('/notifications',[NotificationController::class,'index']);
+    Route::get('/notification/markread/{id}',[NotificationController::class,'markRead']);
+
+    // feedback api
+    Route::get('/feedback',[FeedbackController::class,'index']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){

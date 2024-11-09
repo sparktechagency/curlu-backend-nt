@@ -103,6 +103,6 @@ class SalonController extends Controller
         }
 
         $salonInvoice = $salonInvoice->paginate();
-        return response()->json(['message'=> 'Data retrive successfully','salonInvoice'=>$salonInvoice], 200);
+        return response()->json(['message' => 'Data retrive successfully', 'salonInvoice' => $salonInvoice], 200);
     }
 }
