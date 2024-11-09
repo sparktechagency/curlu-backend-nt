@@ -7,6 +7,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Mail\OtpMail;
 use App\Models\Salon;
 use App\Models\User;
+use App\Notifications\NewSalonNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,6 +101,10 @@ class AuthController extends Controller
                         $salon->cover_image = saveImage($request,'cover-image');
                     }
                     $salon->save();
+                    $admins=User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->get();
+                    foreach ($admins as $admin) {
+                        $admin->notify(new NewSalonNotification($user));
+                    }
                     DB::commit();
                     Mail::to($request->email)->send(new OtpMail($user->otp));
                     return response()->json([
@@ -441,7 +446,7 @@ class AuthController extends Controller
             return response()->json(['message'=> $e->getMessage()]);
         }
     }
-   
+
 
 }
 

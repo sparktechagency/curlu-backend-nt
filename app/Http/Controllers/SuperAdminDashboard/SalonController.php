@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdminDashboard;
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\Salon;
+use App\Models\SalonInvoice;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +20,8 @@ class SalonController extends Controller
     {
         $query = Salon::with('user');
 
-        if ($request->filled('location'))
-        {
-            $query->whereHas('user' , function ($q) use ($request){
+        if ($request->filled('location')) {
+            $query->whereHas('user', function ($q) use ($request) {
                 $q->where('address', 'like', '%' . $request->input('location') . '%');
             });
         }
@@ -46,7 +46,7 @@ class SalonController extends Controller
             $user->role_type = $request->role_type;
             $user->otp = Str::random(6);
             if ($request->file('image')) {
-                $user->image = saveImage($request,'image');
+                $user->image = saveImage($request, 'image');
             }
             $user->save();
 
@@ -56,12 +56,12 @@ class SalonController extends Controller
             $salon->salon_type = $request->salon_type;
             $salon->salon_description = $request->salon_description;
             if ($request->file('id_card')) {
-                $salon->id_card = saveImage($request,'id_card');
+                $salon->id_card = saveImage($request, 'id_card');
             }
             $salon->kbis = $request->kbis;
             $salon->iban_number = $request->iban_number;
             if ($request->file('cover-image')) {
-                $salon->cover_image = saveImage($request,'cover-image');
+                $salon->cover_image = saveImage($request, 'cover-image');
             }
             $salon->save();
             DB::commit();
@@ -74,5 +74,35 @@ class SalonController extends Controller
             Log::error('Error adding provider: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    public function salonStatus(Request $request, $id)
+    {
+        $user = User::where('id', $id)->first();
+        if ($user->user_status == 'active') {
+            $status = 'inactive';
+        } else {
+            $status = 'active';
+        }
+        $user->user_status = $status;
+        $user->save();
+        return response()->json(['message' => 'Status updated'], 200);
+    }
+
+    public function salon_invoice(Request $request)
+    {
+        $salonInvoice = SalonInvoice::with('salon', 'salon.user:id,name,image', 'payment_detail:id,invoice_number', 'service:id,service_name');
+        $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) {
+            $query->where('role_type', 'PROFESSIONAL');
+        });
+
+        if ($request->filled('salon_name')) {
+            $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->salon_name . '%');
+            });
+        }
+
+        $salonInvoice = $salonInvoice->paginate();
+        return response()->json(['message' => 'Data retrive successfully', 'salonInvoice' => $salonInvoice], 200);
     }
 }

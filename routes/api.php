@@ -5,11 +5,15 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Barbar\BSalonServiceController;
 use App\Http\Controllers\Barbar\HomeController;
 use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\SuperAdminDashboard\DashboardController;
 use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
+use App\Http\Controllers\SuperAdminDashboard\NotificationController;
+use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
@@ -43,27 +47,53 @@ Route::group([['middleware' => 'auth:api']], function ($router) {
 
 //dashboard
 Route::middleware(['admin', 'auth:api'])->group(function (){
-    Route::get('/user-details', [UserController::class,'userDetails']);
-    Route::get('/all-salon', [SalonController::class,'allSalon']);
-    Route::get('/add-salon', [SalonController::class,'addSalon']);
 
-    // category
+    // dashboard api
+    Route::get('/dashboard',[DashboardController::class,'index']);
+
+    // user api
+    Route::get('/user-details', [UserController::class,'userDetails']);
+    Route::put('/user-status/{id}', [UserController::class,'userStatus']);
+
+    // salon api
+    Route::get('/all-salon', [SalonController::class,'allSalon']);
+    Route::post('/add-salon', [SalonController::class,'addSalon']);
+    Route::put('/salon-status/{id}', [SalonController::class,'salonStatus']);
+
+    // category api
     Route::resource('/categories', RCategoryController::class)->except('edit','create');
 
+    // shop-category api
     Route::resource('/shop-category', ECategoryController::class)->except('edit','create','index');
 
+    // products api
     Route::resource('/products',ProductController::class)->except('edit','create');
 
-
+    // admins api
     Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 
     Route::resource('/sliders', SliderController::class)->except('edit','create');
 
     Route::resource('/faqs', FaqController::class)->except('edit','create');
+
+    // salon invoice api
+    Route::get('/salon_invoice',[SalonController::class,'salon_invoice']);
+
+    // notification
+    Route::get('/notifications',[NotificationController::class,'index']);
+    Route::get('/notification/markread/{id}',[NotificationController::class,'markRead']);
+
+    // feedback api
+    Route::get('/feedback',[FeedbackController::class,'index']);
+    // order_transaction api
+    Route::get('/order_transaction',[OrderTransactionController::class,'index']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
+    // salon service
     Route::resource('/salon-services',BSalonServiceController::class)->except('edit','create');
+    Route::put('/service-status/{id}', [BSalonServiceController::class,'serviceStatus']);
+
 
     Route::get('/show-products', [HomeController::class,'showProducts']);
     Route::get('/logout', [AuthController::class, 'logout']);
