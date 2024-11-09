@@ -104,6 +104,9 @@ Route::middleware(['admin.professional.user','auth:api'])->group(function (){
 Route::middleware(['user','auth:api'])->group(function (){
     Route::get('/slider', [UserServiceController::class,'homeSlider']);
     Route::get('/populer-service', [UserServiceController::class,'populerService']);
+    Route::get('/cat-service/{id}', [UserServiceController::class,'caregoryService']);
     Route::get('/offer-service', [UserServiceController::class,'serviceOffer']);
     Route::get('/e-shop', [UserServiceController::class,'eShopProduct']);
+
+    Route::get('/nearby-professionals', [UserServiceController::class,'getNearbyProfessionals']);
 });

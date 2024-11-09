@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Salon;
 use App\Models\SalonService;
 use App\Models\slider;
 use App\Models\User;
 use Illuminate\Http\Request;
-
-
-
-
+use App\Services\UserService;
 class UserServiceController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserService $userService){
+        $this->userService = $userService;
+    }
+    
 
     public function homeSlider(Request $request) {
         // $sliders = slider::where('is_slider', 1)
@@ -31,18 +35,32 @@ class UserServiceController extends Controller
 
     public function populerService(Request $request) {
         
-            $populerService = SalonService::with('salon')
+            $populerService = SalonService::with('category')
+                            ->where('service_status', 'active')   
                             ->where('popular', '>', 0)
                             ->orderBy('popular', 'desc')
-                            ->pasinate($request->per_page ?? 10); ;
+                            ->paginate($request->per_page ?? 10);
             
 
             if($populerService->isEmpty()) {
                 return response()->json(['message'=> 'No populer service found']);
             }
-               
             return response()->json(['message'=> 'Success','populerService' => $populerService]);
         
+    }
+
+    public function caregoryService(Request $request,$id){
+        $categoryService = SalonService::with('category')
+                            ->where('category_id', $id)
+                            ->where('service_status', 'active')
+                            ->where('popular', '>', 0)
+                            ->orderBy('popular', 'desc') 
+                            ->paginate($request->per_page ?? 10);
+
+        if($categoryService->isEmpty()) {
+            return response()->json(['message'=> 'No service found']);
+        }
+        return response()->json(['message'=> 'Success','categoryService' => $categoryService]);
     }
 
     public function serviceOffer(Request $request) {
@@ -75,6 +93,36 @@ class UserServiceController extends Controller
         }
 
         return response()->json(['message'=> 'Success','products' => $products]);
+    }
+
+
+    public function getNearbyProfessionals(Request $request) {
+        $user = auth()->user();
+       
+        $userLatitude = $request->latitude ?? $user->latitude;
+        $userLongitude = $request->longitude ?? $user->longitude;
+
+        if (empty($userLatitude) || empty($userLongitude)) {
+            return response()->json(['message' => 'Please update your location to find nearby professionals']);
+        }
+        $radius = $request->radius ?? 10;
+
+        $nearbyProfessionals = $this->userService->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
+        
+        foreach ($nearbyProfessionals as $professional) {
+            $professional->distance = $this->userService->distanceService->getDistance(
+                $userLatitude,
+                $userLongitude,
+                $professional->latitude,
+                $professional->longitude
+            );
+        }
+
+        if (empty($nearbyProfessionals)) {
+            return response()->json(['message' => 'No nearby professionals found']);
+        }
+
+        return response()->json(['message' => 'Success', 'nearby_professionals' => $nearbyProfessionals]);
     }
 
     

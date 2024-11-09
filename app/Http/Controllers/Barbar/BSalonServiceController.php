@@ -64,6 +64,7 @@ class BSalonServiceController extends Controller
         if (empty($salon)){
             return response()->json(['error' => 'salon not found'], 404);
         }
+        // dd($request->hasFile('service_image'));
             $service = new SalonService();
             if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
                 $service->service_image = saveImage($request, 'service_image');

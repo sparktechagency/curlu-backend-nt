@@ -1,4 +1,4 @@
-php artisan make:migration add_latitude_longitude_to_users_table --table=users<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('salon_services', function (Blueprint $table) {
-            $table->integer('popular')->default(0)->after('service_status');
+        Schema::create('salon_schedule_times', function (Blueprint $table) {
+            $table->id();
+            $table->json('schedule');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('salon_services', function (Blueprint $table) {
-            $table->dropColumn('popular');
-        });
+        Schema::dropIfExists('salon_schedule_times');
     }
 };
