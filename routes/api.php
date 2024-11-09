@@ -13,6 +13,7 @@ use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
 use App\Http\Controllers\SuperAdminDashboard\NotificationController;
+use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
@@ -82,6 +83,8 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
 
     // feedback api
     Route::get('/feedback',[FeedbackController::class,'index']);
+    // order_transaction api
+    Route::get('/order_transaction',[OrderTransactionController::class,'index']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){

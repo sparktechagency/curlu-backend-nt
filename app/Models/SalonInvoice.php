@@ -22,4 +22,7 @@ class SalonInvoice extends Model
     public function service(){
         return $this->belongsTo(SalonService::class);
     }
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }
