@@ -41,9 +41,9 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function salon(): BelongsTo
+    public function salon(): HasOne
     {
-        return $this->belongsTo(Salon::class);
+        return $this->hasOne(Salon::class);
     }
 
     public function payments(): HasMany

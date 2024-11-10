@@ -15,7 +15,9 @@ use App\Http\Controllers\SuperAdminDashboard\SalonServiceController;
 use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
 use App\Http\Controllers\TermsConditionController;
+use App\Http\Controllers\User\OrderController;
 use App\Http\Controllers\User\UserServiceController;
+use App\Http\Controllers\User\WishlistController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -109,4 +111,12 @@ Route::middleware(['user','auth:api'])->group(function (){
     Route::get('/e-shop', [UserServiceController::class,'eShopProduct']);
 
     Route::get('/nearby-professionals', [UserServiceController::class,'getNearbyProfessionals']);
+    Route::get('/nearby-catServices/{id}', [UserServiceController::class,'getNearbyProfessionalsByCategory']);
+
+    Route::get('/wishlist', [WishlistController::class,'getWishlist']);
+    Route::put('/update-wishlist/{serviceId}', [WishlistController::class,'updateWishlist']);
+
+    //order
+    Route::get('/place-order', [OrderController::class,'getUserOrers']);
+    Route::post('/place-order/{serviceId}', [OrderController::class,'placeOrder']);
 });
