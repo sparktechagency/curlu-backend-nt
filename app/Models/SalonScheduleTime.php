@@ -9,7 +9,16 @@ class SalonScheduleTime extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'schedule'
+    protected $guarded = [
+        'id'
     ];
+
+    protected $casts = [
+        'schedule' => 'json'
+    ];
+
+    public function salon()
+    {
+        return $this->belongsTo(Salon::class);
+    }
 }

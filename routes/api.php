@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Barbar\BSalonServiceController;
 use App\Http\Controllers\Barbar\HomeController;
 use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\Porfessional\ManageSchedulController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
@@ -70,6 +71,13 @@ Route::middleware(['professional', 'auth:api'])->group(function (){
     Route::get('/show-products', [HomeController::class,'showProducts']);
     Route::get('/logout', [AuthController::class, 'logout']);
 
+
+    //schedule time for salon
+    Route::get('/schedules', [ManageSchedulController::class,'salonScheduleTime']);
+    Route::post('/schedules', [ManageSchedulController::class,'storeSchedule']);
+    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
+    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
+
 });
 
 Route::middleware(['super.admin','auth:api'])->group(function (){
@@ -109,6 +117,9 @@ Route::middleware(['user','auth:api'])->group(function (){
     Route::get('/cat-service/{id}', [UserServiceController::class,'caregoryService']);
     Route::get('/offer-service', [UserServiceController::class,'serviceOffer']);
     Route::get('/e-shop', [UserServiceController::class,'eShopProduct']);
+
+
+    Route::get('/profession-services/{id}', [UserServiceController::class,'findServiceByProfessional']);
 
     Route::get('/nearby-professionals', [UserServiceController::class,'getNearbyProfessionals']);
     Route::get('/nearby-catServices/{id}', [UserServiceController::class,'getNearbyProfessionalsByCategory']);

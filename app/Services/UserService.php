@@ -8,6 +8,7 @@ use App\Models\Salon;
 use App\Models\SalonService;
 use App\Models\User;
 use App\Services\DistanceService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Termwind\Components\Dd;
 
 class UserService
@@ -23,11 +24,9 @@ class UserService
     public function getNearbyProfessionals($userLatitude, $userLongitude, $radius = 10)
     {
         
-        $professionals = User::with('salon')->where('role_type', 'PROFESSIONAL')
+        $professionals = User::with('salon.salon_services.category')->where('role_type', 'PROFESSIONAL')
             ->select('id', 'name', 'last_name', 'address', 'latitude', 'longitude')
             ->paginate(10);
-
-            
 
         $nearbyProfessionals = [];
         
@@ -57,35 +56,29 @@ class UserService
     {
         
         $nearByProf = $this->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
-        // dd($nearByProf);
-        $nearServicesByCategory = collect($nearByProf)->map(function($item) use ($userLatitude, $userLongitude, $category) {
-        $services = SalonService::with(['salon','category'])
-                                ->where('salon_id', $item->salon->id)
-                                ->where('category_id', $category)
-                                ->paginate(10);
 
-        $services->getCollection()->transform(function($service) use($userLatitude, $userLongitude, $item) {
-            return [
-                'prof_id' => $item->id,
-                'prof_name' => $item->name,
-                'last_name' => $item->last_name,
-                'address' => $item->address,
-                'id' => $service->id,
-                'name' => $service->service_name,
-                'price' => $service->price,
-                'discount_price' => $service->discount_price,
-                'salon_id' => $service->salon->id,
-                'distance' => $this->distanceService->getDistance($userLatitude, $userLongitude, $item->latitude, $item->longitude),
-                'category' => $service->category->category_name,
-                'category_image' => $service->category->category_image,
-                'category_id' => $service->category->id,
-            ];
+        $nearByProfsss = collect($nearByProf)->filter(function ($professional) use ($category) {
+            return SalonService::where('category_id', $category)->get();
         });
-        return [
-            'services' => $services,
-        ] ;
-    });
-    
-         return $nearServicesByCategory;
+
+
+
+
+
+        // $perPage = 10;
+        // $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        // $currentPageItems = $nearByProf->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+        // $paginatedProfessionals = new LengthAwarePaginator(
+        //     $currentPageItems,
+        //     $filteredProfessionals->count(),
+        //     $perPage,
+        //     $currentPage,
+        //     ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        // );
+
+        // return $paginatedProfessionals;
+        return $nearByProfsss;
+        
     }
 }
