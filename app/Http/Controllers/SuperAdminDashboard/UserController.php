@@ -13,14 +13,6 @@ class UserController extends Controller
     {
         $query = User::query()->where('role_type', 'USER');
 
-<<<<<<< HEAD
-        
-        if($request->filled('location')){
-            $query->where('address', 'like' , '%' . $request->input('location') . '%');
-        }
-        $user = $query->paginate($request->per_page ?? 10);
-        return response()->json($user,200);
-=======
         if ($request->filled('location')) {
             $query->where('address', 'like', '%' . $request->input('location') . '%');
         }
@@ -39,6 +31,5 @@ class UserController extends Controller
         $user->user_status = $status;
         $user->save();
         return response()->json(['message' => 'Status updated'], 200);
->>>>>>> 422e66558673a397c9f3b94c9792aeb4ef450233
     }
 }

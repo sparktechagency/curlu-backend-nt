@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Notification;
 
 class AuthController extends Controller
 {

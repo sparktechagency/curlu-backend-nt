@@ -24,6 +24,14 @@ class DashboardController extends Controller
             ->groupBy('month')
             ->orderBy('month')
             ->get();
+        $app_users = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $app_users[] = [
+                'month' => $i,
+                'user' => $appUsers->firstWhere('month', $i)->count ?? 0,
+            ];
+        }
+
         // active user
         $activeUsers = User::query()
             ->where('role_type', 'USER')
@@ -33,6 +41,13 @@ class DashboardController extends Controller
             ->groupBy('month')
             ->orderBy('month')
             ->get();
+        $active_users = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $active_users[] = [
+                'month' => $i,
+                'user' => $activeUsers->firstWhere('month', $i)->count ?? 0,
+            ];
+        }
 
         // earning growth
         $year = $request->filled('year') ? $request->input('year') : date('Y');
@@ -70,8 +85,8 @@ class DashboardController extends Controller
             'daily_user' => $daily_user,
             'total_salon' => $total_salon,
             'total_earning' => $total_earning,
-            'app_users' => $appUsers,
-            'active_users' => $activeUsers,
+            'app_users' => $app_users,
+            'active_users' => $active_users,
             'total_earning_growth' => $monthlyEarnings,
             'total_salon_statistic' => $monthlySalons,
         ], 200);

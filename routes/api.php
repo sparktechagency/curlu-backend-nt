@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
 use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
 use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
+use App\Http\Controllers\SuperAdminDashboard\ManageHaircutOfferController;
 use App\Http\Controllers\SuperAdminDashboard\NotificationController;
 use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
@@ -89,6 +90,8 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::get('/feedback',[FeedbackController::class,'index']);
     // order_transaction api
     Route::get('/order_transaction',[OrderTransactionController::class,'index']);
+    // manage haircut offer api
+    Route::get('/manage-haircut',[ManageHaircutOfferController::class,'index']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
