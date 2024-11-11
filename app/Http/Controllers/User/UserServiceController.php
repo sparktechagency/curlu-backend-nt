@@ -62,7 +62,8 @@ class UserServiceController extends Controller
         }
         return response()->json(['message'=> 'Success','categoryService' => $categoryService]);
     }
-
+    
+    //get discount offers services
     public function serviceOffer(Request $request) {
         $offerService = SalonService::with('salon')
                         ->whereNotNull('discount_price')
@@ -80,7 +81,7 @@ class UserServiceController extends Controller
         return response()->json(['message'=> 'Success','offerService' => $offerService]);
     }
 
-
+    //get e-shop products
     public function eShopProduct(Request $request) {
         // $products = Product::with('shop_category')
         //             ->orderBy('created_at', 'desc')
@@ -96,6 +97,7 @@ class UserServiceController extends Controller
     }
 
 
+    //get nearby professionals services
     public function getNearbyProfessionals(Request $request) {
         $user = auth()->user();
        
@@ -125,6 +127,26 @@ class UserServiceController extends Controller
         return response()->json(['message' => 'Success', 'nearby_professionals' => $nearbyProfessionals]);
     }
 
+    
+
+    public function getNearbyProfessionalsByCategory(Request $request, $id) {
+        $user = auth()->user();
+        $userLatitude = $request->latitude ?? $user->latitude;
+        $userLongitude = $request->longitude ?? $user->longitude;
+
+        if (empty($userLatitude) || empty($userLongitude)) {
+            return response()->json(['message' => 'Please update your location to find nearby professionals']);
+        }
+        $radius = $request->radius ?? 10;
+
+        $nearByServiceByCategory = $this->userService->getNearbyProfessionalsByCategory($userLatitude, $userLongitude, $radius, $id);
+        
+        if (empty($nearByServiceByCategory)) {
+            return response()->json(['message' => 'No nearby professionals found']);
+        }
+
+        return response()->json(['message' => 'Success', 'nearby_professionals' => $nearByServiceByCategory]);
+    }
     
     
 }
