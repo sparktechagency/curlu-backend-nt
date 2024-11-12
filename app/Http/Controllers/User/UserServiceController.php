@@ -13,6 +13,8 @@ use App\Models\slider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\UserService;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 use ParagonIE\Sodium\Core\Curve25519\Fe;
 
 class UserServiceController extends Controller
@@ -173,8 +175,10 @@ class UserServiceController extends Controller
             return response()->json(['message' => 'Please update your location to find nearby professionals']);
         }
         $radius = $request->radius ?? 10;
+        $perPage = $request->per_page ?? 10;
+        $searchTerm = $request->search_term;
 
-        $nearByServiceByCategory = $this->userService->getNearbyProfessionalsByCategory($userLatitude, $userLongitude, $radius, $id);
+        $nearByServiceByCategory = $this->userService->getNearbyProfessionalsByCategory($userLatitude, $userLongitude, $radius, $id, $searchTerm, $perPage);
 
         if (empty($nearByServiceByCategory)) {
             return response()->json(['message' => 'No nearby professionals found']);
@@ -191,8 +195,8 @@ class UserServiceController extends Controller
         try {
             $salon_user = Salon::with('user')->where('id', $id)->get();
 
-            $salon_user = collect($salon_user)->map(function ($salon) {
-                $service = SalonService::where('salon_id', $salon->id)->paginate(10);
+            $salon_user = collect($salon_user)->map(function ($salon) use ($request) {
+                $service = SalonService::where('salon_id', $salon->id)->paginate($request->per_page ?? 10);
                 $schedule = SalonScheduleTime::where('salon_id', $salon->id)->get();
                 $schedule = $schedule->map(function ($item) {
                     return is_string($item->schedule) ? json_decode($item->schedule, true) : $item->schedule;
@@ -216,8 +220,6 @@ class UserServiceController extends Controller
                     'services' => $service,
                 ];
             });
-
-
             return response()->json([
                 'message' => 'Success',
                 'salon_services' => $salon_user,
