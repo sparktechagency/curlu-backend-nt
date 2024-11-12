@@ -57,28 +57,52 @@ class UserService
         
         $nearByProf = $this->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
 
-        $nearByProfsss = collect($nearByProf)->filter(function ($professional) use ($category) {
-            return SalonService::where('category_id', $category)->get();
+
+        $nearsetServiceByCategory = collect($nearByProf)->transform(function ($professional) use ($userLatitude, $userLongitude, $category) {
+            return [
+                'user_id' => $professional->id,
+                'salon_id' => $professional->salon->id,
+                'name' => $professional->name,
+                'last_name' => $professional->last_name,
+                'address' => $professional->address,
+                'latitude' => $professional->latitude,
+                'longitude' => $professional->longitude,
+                'distance' => $this->distanceService->getDistance(
+                    $userLatitude,
+                    $userLongitude,
+                    $professional->latitude,
+                    $professional->longitude
+                ),
+                'salon_services' => collect($professional->salon->salon_services)->transform(function ($service) use ($category) {
+                    if ($service->category->id == $category) {
+                        return [
+                            'id' => $service->id,
+                            'category_id' => $service->category_id,
+                            'name' => $service->service_name,
+                            'price' => $service->price,
+                            'discount_price' => $service->discount_price,
+                            'service_image' => $service->service_image,
+                            'service_description' => $service->service_description,
+                            'category_name' => $service->category->category_name,
+                            'category_image' => $service->category->category_image,
+                            
+                            
+
+                        ];
+                    }
+                })->filter()->values(),
+            ];
         });
+       
+        // check if the services are empty
+        $nearsetServiceByCategory = $nearsetServiceByCategory->transform(function ($professional) {
+            if ($professional['salon_services']->isEmpty()) {
+            $professional = 'No services found';
+            }
+            return $professional;
+        })->first();
 
-
-
-
-
-        // $perPage = 10;
-        // $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        // $currentPageItems = $nearByProf->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-        // $paginatedProfessionals = new LengthAwarePaginator(
-        //     $currentPageItems,
-        //     $filteredProfessionals->count(),
-        //     $perPage,
-        //     $currentPage,
-        //     ['path' => LengthAwarePaginator::resolveCurrentPath()]
-        // );
-
-        // return $paginatedProfessionals;
-        return $nearByProfsss;
+        return $nearsetServiceByCategory;
         
     }
 }

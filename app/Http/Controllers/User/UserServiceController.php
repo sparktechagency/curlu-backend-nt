@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Feedback;
 use App\Models\Product;
 use App\Models\Salon;
 use App\Models\SalonScheduleTime;
@@ -12,6 +13,7 @@ use App\Models\slider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\UserService;
+use ParagonIE\Sodium\Core\Curve25519\Fe;
 
 class UserServiceController extends Controller
 {
@@ -129,6 +131,29 @@ class UserServiceController extends Controller
             );
         }
 
+        $nearbyProfessionals = collect($nearbyProfessionals)->transform(function ($professional) {
+            $schedule = SalonScheduleTime::where('salon_id', $professional->salon->id)
+                        ->get()->transform(function ($item) {
+                            return is_string($item->schedule) ? json_decode($item->schedule, true) : $item->schedule;
+                        });
+            $reviews = Feedback::where('salon_id', $professional->salon->id)
+                    ->avg('review');
+            return [
+                'user_id' => $professional->id,
+                'salon_id' => $professional->salon->id,
+                'name' => $professional->name,
+                'last_name' => $professional->last_name,
+                'address' => $professional->address,
+                'distance' => $professional->distance,
+                'image' => $professional->image,
+                'cover_image' => $professional->cover_image,
+                'salon_type' => $professional->salon->salon_type,
+                'rating' => number_format($reviews, 1) ?? 0,
+                'schedule_time' => $schedule,
+                
+            ];
+        });
+
         if (empty($nearbyProfessionals)) {
             return response()->json(['message' => 'No nearby professionals found']);
         }
@@ -155,7 +180,7 @@ class UserServiceController extends Controller
             return response()->json(['message' => 'No nearby professionals found']);
         }
 
-        return response()->json(['message' => 'Success', 'nearby_professionals' => $nearByServiceByCategory]);
+        return response()->json(['message' => 'Success', 'nearbyProfessionalServices' => $nearByServiceByCategory]);
     }
 
 
