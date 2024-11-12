@@ -15,8 +15,8 @@ class SalonService extends Model
     {
         return $this->belongsTo(Salon::class);
     }
-   public function category():BelongsTo
-    {
+
+    public function category(){
         return $this->belongsTo(Category::class);
     }
     public function orders()

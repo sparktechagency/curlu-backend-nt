@@ -37,4 +37,9 @@ class Salon extends Model
     {
         return $this->hasOne(SalonScheduleTime::class);
     }
+    public function salon_invoices(): HasMany
+    {
+        return $this->hasMany(SalonInvoice::class);
+    }
+
 }
