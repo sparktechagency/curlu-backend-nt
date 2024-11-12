@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('salon_schedule_times', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('salon_id')->constrained('salons')->onDelete('cascade');
             $table->json('schedule');
+            $table->unsignedInteger('capacity');
             $table->timestamps();
         });
     }

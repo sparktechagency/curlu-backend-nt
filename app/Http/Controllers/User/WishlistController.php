@@ -5,15 +5,16 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\SalonService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class WishlistController extends Controller
 {
     /**
      * Get all wishlist services.
      */
-    public function getWishlist()
+    public function getWishlist(Request $request)   
     {
-        $serviceWishlist = SalonService::where('wishlist', 1)->get();
+        $serviceWishlist = SalonService::where('wishlist', 1)->paginate($request->per_page ?? 10);
         return response()->json(['message' => 'Success', 'serviceWishlist' => $serviceWishlist]);
     }
 

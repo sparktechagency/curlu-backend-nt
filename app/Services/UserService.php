@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 // use App\Models\Salon;
@@ -8,7 +9,7 @@ use App\Models\Salon;
 use App\Models\SalonService;
 use App\Models\User;
 use App\Services\DistanceService;
-use Termwind\Components\Dd;
+
 
 class UserService
 {
@@ -22,20 +23,18 @@ class UserService
 
     public function getNearbyProfessionals($userLatitude, $userLongitude, $radius = 10)
     {
-        
-        $professionals = User::with('salon')->where('role_type', 'PROFESSIONAL')
+
+        $professionals = User::with('salon.salon_services.category')->where('role_type', 'PROFESSIONAL')
             ->select('id', 'name', 'last_name', 'address', 'latitude', 'longitude')
             ->paginate(10);
 
-            
-
         $nearbyProfessionals = [];
-        
+
 
 
         foreach ($professionals as $professional) {
 
-            
+
             $distance = $this->distanceService->getDistance(
                 $userLatitude,
                 $userLongitude,
@@ -45,7 +44,6 @@ class UserService
             // dump($distance);
             if ($distance <= $radius) {
                 $nearbyProfessionals[] = $professional;
-                
             }
         }
         // dd($nearbyProfessionals);
@@ -53,39 +51,67 @@ class UserService
     }
 
     //getNearbyProfessionalsByCategory make this function to get nearby professionals by category
-    public function getNearbyProfessionalsByCategory($userLatitude, $userLongitude, $radius = 20, $category)
+    public function getNearbyProfessionalsByCategory($userLatitude, $userLongitude, $radius = 20, $category, $searchTerm = null, $perPage = 10)
     {
-        
-        $nearByProf = $this->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
-        // dd($nearByProf);
-        $nearServicesByCategory = collect($nearByProf)->map(function($item) use ($userLatitude, $userLongitude, $category) {
-        $services = SalonService::with(['salon','category'])
-                                ->where('salon_id', $item->salon->id)
-                                ->where('category_id', $category)
-                                ->paginate(10);
 
-        $services->getCollection()->transform(function($service) use($userLatitude, $userLongitude, $item) {
+        $nearByProf = $this->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
+
+        $nearByProf = collect($nearByProf)->filter(function ($professional) use ($category, $searchTerm) {
+            return $professional->salon->salon_services->where('category_id', $category)
+                ->filter(function ($service) use ($searchTerm) {
+                    return !$searchTerm || stripos($service->service_name, $searchTerm) !== false;
+                })->isNotEmpty();
+        });
+
+        $nearsetServiceByCategory = $nearByProf->map(function ($professional) use ($category, $searchTerm, $userLatitude, $userLongitude, $perPage) {
+
+            $salonServices = $professional->salon->salon_services()
+                ->where('category_id', $category)
+                ->when($searchTerm, function ($query) use ($searchTerm) {
+                    return $query->where('service_name', 'like', '%' . $searchTerm . '%');
+                })
+                ->paginate($perPage);
+
+            $salonServices->transform(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'category_id' => $service->category_id,
+                    'name' => $service->service_name,
+                    'price' => $service->price,
+                    'discount_price' => $service->discount_price,
+                    'service_image' => $service->service_image,
+                    'service_description' => $service->service_description,
+                    'category_name' => $service->category->category_name,
+                    'category_image' => $service->category->category_image,
+                ];
+            });
             return [
-                'prof_id' => $item->id,
-                'prof_name' => $item->name,
-                'last_name' => $item->last_name,
-                'address' => $item->address,
-                'id' => $service->id,
-                'name' => $service->service_name,
-                'price' => $service->price,
-                'discount_price' => $service->discount_price,
-                'salon_id' => $service->salon->id,
-                'distance' => $this->distanceService->getDistance($userLatitude, $userLongitude, $item->latitude, $item->longitude),
-                'category' => $service->category->category_name,
-                'category_image' => $service->category->category_image,
-                'category_id' => $service->category->id,
+                'user_id' => $professional->id,
+                'salon_id' => $professional->salon->id,
+                'name' => $professional->name,
+                'last_name' => $professional->last_name,
+                'address' => $professional->address,
+                'latitude' => $professional->latitude,
+                'longitude' => $professional->longitude,
+                'distance' => $this->distanceService->getDistance(
+                    $userLatitude,
+                    $userLongitude,
+                    $professional->latitude,
+                    $professional->longitude
+                ),
+                'salon_services' => $salonServices,
+
             ];
         });
-        return [
-            'services' => $services,
-        ] ;
-    });
-    
-         return $nearServicesByCategory;
+
+        // check if the services are empty
+        // $nearsetServiceByCategory = $nearsetServiceByCategory->transform(function ($professional) {
+        //     if ($professional['salon_services']->isEmpty()) {
+        //         $professional = 'No services found';
+        //     }
+        //     return $professional;
+        // })->first();
+
+        return $nearsetServiceByCategory;
     }
 }
