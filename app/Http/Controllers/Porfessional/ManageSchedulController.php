@@ -93,10 +93,19 @@ class ManageSchedulController extends Controller
     public function upcomingBooking(Request $request)
     {
         $upcomingBooking = Order::where('salon_id', auth()->user()->salon->id)
-            ->orWhere('status', 'pending')
-            ->orWhereDate('completed_at', '>', Carbon::parse($request->date))
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->per_page ?? 10);
+            ->Where('status', 'pending');
+        // ->WhereDate('completed_at', '>', Carbon::parse($request->date))
+        // ->when($request->date, function ($query) use ($request) {
+        //     return $query->whereDate('completed_at', '=', $request->date);
+        // })
+        // ->orderBy('created_at', 'desc')
+        // ->paginate($request->per_page ?? 10);
+
+        if ($request->filled('date')) {
+            $upcomingBooking->where('completed_at', '=', $request->date);
+        }
+
+        return $upcomingBooking->get();
 
 
         if ($upcomingBooking->isEmpty()) {
@@ -114,7 +123,7 @@ class ManageSchedulController extends Controller
                 'order_number' => $booking->order_number,
                 'total_amount' => $booking->total_amount,
                 'status' => $booking->status == 'pending' ? 'Upcoming' : 'Processing',
-                'booking_time' => Carbon::parse($booking->completed_at)->format('d m y h:i a'),
+                'booking_time' => Carbon::parse($booking->completed_at)->format('d M y h:i a'),
                 'services' => [
                     'service_id' => $booking->service->id,
                     'service_name' => $booking->service->service_name,
