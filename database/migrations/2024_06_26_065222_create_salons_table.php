@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('iban_number')->nullable();
             $table->string('kbis')->nullable();
             $table->string('cover_image')->nullable();
+            $table->string('stripe_account_id')->nullable();
             $table->timestamps();
         });
     }

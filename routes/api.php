@@ -120,17 +120,19 @@ Route::middleware(['super.admin','auth:api'])->group(function (){
 
 //R&D individual barcode generate for each task
 
-//Route::middleware(['auth:api'])->group(function (){
+// Route::middleware(['auth:api'])->group(function (){
 //    Route::get('/home', [PaymentController::class, 'index'])->name('home');
 //    Route::post('/payment-request', [PaymentController::class, 'storePaymentRequest'])->name('payment-request');
 //    Route::get('/payment/{slug}', [PaymentController::class, 'paymentCheckout'])->name('payment-checkout');
 //    Route::get('/payment/success/{session_id}', [PaymentController::class, 'paymentSuccess'])->name('payment-success');
 //    Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
-
-Route::post('payment-request', [StripeController::class, 'stripe'])->name('payment-request');
+Route::post('create-connect-account', [StripeController::class, 'connectAccount'])->name('connectAccount');
+Route::get('getOnboardingLink/{account_id}', [StripeController::class, 'getOnboardingLink'])->name('getOnboardingLink');
+Route::post('payment-request', [StripeController::class, 'createCheckoutSession'])->name('payment-request');
 Route::get('success', [StripeController::class, 'success'])->name('payment-success');
 Route::get('cancel', [StripeController::class, 'cancel'])->name('payment-cancel');
-//});
+
+// });
 
 
 
