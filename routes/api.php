@@ -112,6 +112,9 @@ Route::middleware(['professional', 'auth:api'])->group(function (){
     Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
     Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
 
+    //upcoming booking
+    Route::get('/upcoming-booking', [ManageSchedulController::class,'upcomingBooking']);
+
 });
 
 Route::middleware(['super.admin','auth:api'])->group(function (){
@@ -170,4 +173,6 @@ Route::middleware(['user','auth:api'])->group(function (){
     //order
     Route::get('/place-order', [OrderController::class,'getUserOrers']);
     Route::post('/place-order/{serviceId}', [OrderController::class,'placeOrder']);
+    Route::put('/order-cancel/{id}', [OrderController::class,'cancelOrder']);
+    Route::get('total-order-amount', [OrderController::class,'totalOrderAmount']);
 });

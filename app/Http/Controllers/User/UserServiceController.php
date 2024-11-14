@@ -13,9 +13,7 @@ use App\Models\slider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\UserService;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-use ParagonIE\Sodium\Core\Curve25519\Fe;
 
 class UserServiceController extends Controller
 {
@@ -51,6 +49,26 @@ class UserServiceController extends Controller
             ->paginate($request->per_page ?? 10);
 
 
+        $populerService->transform(function($service) {
+            return[
+                'service_id' => $service->id,
+                'category_id' => $service->category_id,
+                'category_name' => $service->category->name,
+                'category_image' => $service->category->image,
+                'salon_id' => $service->salon_id,
+                'service_name' => $service->service_name,
+                'price' => $service->price,
+                'discount_price' => $service->discount_price,
+                'service_image' => $service->service_image,
+                'service_description' => $service->service_description,
+                'popular' => $service->popular,
+                'salon_name' => $service->salon->user->name. ' ' . $service->salon->user->last_name,
+                'salon_address' => $service->salon->user->address,
+                'salon_image' => $service->salon->user->image,
+            ];
+        });
+
+
         if ($populerService->isEmpty()) {
             return response()->json(['message' => 'No populer service found']);
         }
@@ -76,30 +94,41 @@ class UserServiceController extends Controller
     //get discount offers services
     public function serviceOffer(Request $request)
     {
-        $offerService = SalonService::with('salon')
+        $offerService = SalonService::with('salon.user')
             ->whereNotNull('discount_price')
             ->orderBy('discount_price', 'desc')
             ->paginate($request->per_page ?? 10);
 
+        $offerService->transform(function($service) {
+            return[
+                'service_id' => $service->id,
+                'category_id' => $service->category_id,
+                'salon_id' => $service->salon_id,
+                'service_name' => $service->service_name,
+                'price' => $service->price,
+                'discount_price' => $service->discount_price,
+                'service_image' => $service->service_image,
+                'service_description' => $service->service_description,
+                'salon_name' => $service->salon->user->name. ' ' . $service->salon->user->last_name,
+                'salon_address' => $service->salon->user->address,
+                'salon_image' => $service->salon->user->image,
+            ];
+        });
+
         if ($offerService->isEmpty()) {
             return response()->json(['message' => 'No offers found']);
         }
-
-        $offerService->each(function ($service) {
-            $service->user = User::where('id', $service->salon->user_id)
-                ->get(['name', 'last_name', 'email', 'phone', 'image', 'address', 'role_type']);
-        });
         return response()->json(['message' => 'Success', 'offerService' => $offerService]);
     }
 
     //get e-shop products
     public function eShopProduct(Request $request)
     {
-        // $products = Product::with('shop_category')
-        //             ->orderBy('created_at', 'desc')
-        //             ->paginate($request->per_page ?? 10);
-        $products = Product::orderBy('created_at', 'desc')
-            ->get();
+        $products = Product::with('shop_category')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($request->per_page ?? 10);
+        // $products = Product::orderBy('created_at', 'desc')
+        //     ->get();
 
         if ($products->isEmpty()) {
             return response()->json(['message' => 'No products found']);
