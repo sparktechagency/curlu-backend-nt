@@ -56,21 +56,13 @@ class UserService
 
         $nearByProf = $this->getNearbyProfessionals($userLatitude, $userLongitude, $radius);
 
-        $nearByProf = collect($nearByProf)->filter(function ($professional) use ($category, $searchTerm) {
-            return $professional->salon->salon_services->where('category_id', $category)
-                ->filter(function ($service) use ($searchTerm) {
-                    return !$searchTerm || stripos($service->service_name, $searchTerm) !== false;
-                })->isNotEmpty();
-        });
-
-        $nearsetServiceByCategory = $nearByProf->map(function ($professional) use ($category, $searchTerm, $userLatitude, $userLongitude, $perPage) {
+        $nearsetServiceByCategory = collect($nearByProf)->map(function ($professional) use ($category, $searchTerm, $userLatitude, $userLongitude, $perPage) {
 
             $salonServices = $professional->salon->salon_services()
                 ->where('category_id', $category)
-                ->when($searchTerm, function ($query) use ($searchTerm) {
-                    return $query->where('service_name', 'like', '%' . $searchTerm . '%');
-                })
+                ->where('service_name', 'like', '%' . $searchTerm . '%') 
                 ->paginate($perPage);
+
 
             $salonServices->transform(function ($service) {
                 return [
@@ -111,7 +103,6 @@ class UserService
         //     }
         //     return $professional;
         // })->first();
-
         return $nearsetServiceByCategory;
     }
 }
