@@ -135,6 +135,16 @@ Route::post('payment-request', [StripeController::class, 'createCheckoutSession'
 Route::get('success', [StripeController::class, 'success'])->name('payment-success');
 Route::get('cancel', [StripeController::class, 'cancel'])->name('payment-cancel');
 
+
+
+
+
+
+// testing connected account
+Route::post('create_account',[StripeController::class,'createConnectedAccount'])->name('create_account');
+Route::post('create_account_link/{accountNo}',[StripeController::class,'create_account_link'])->name('create_account_link');
+Route::delete('delete_account/{accountNo}',[StripeController::class,'delete_account'])->name('delete_account');
+
 // });
 
 
