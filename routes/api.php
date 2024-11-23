@@ -19,6 +19,7 @@ use App\Http\Controllers\SuperAdminDashboard\FaqController;
 use App\Http\Controllers\SuperAdminDashboard\UserController;
 use App\Http\Controllers\SuperAdminDashboard\SalonController;
 use App\Http\Controllers\Porfessional\ManageSchedulController;
+use App\Http\Controllers\SuperAdminDashboard\ChatController;
 use App\Http\Controllers\SuperAdminDashboard\DashboardController;
 use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
 use App\Http\Controllers\SuperAdminDashboard\NotificationController;
@@ -94,6 +95,12 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::get('/order_transaction',[OrderTransactionController::class,'index']);
     // manage haircut offer api
     Route::get('/manage-haircut',[ManageHaircutOfferController::class,'index']);
+
+    //chat
+    Route::get('/search-user',[ChatController::class,'searchUser']);
+    Route::post('/send-message',[ChatController::class,'sendMessage']);
+    Route::get('/get-message', [ChatController::class, 'getMessage']);
+    Route::get('/chat-list', [ChatController::class, 'chatList']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function (){
