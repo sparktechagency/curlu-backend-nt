@@ -100,7 +100,7 @@ class UserServiceController extends Controller
             ->paginate($request->per_page ?? 10);
 
         $offerService->transform(function($service) {
-            return[
+            return [
                 'service_id' => $service->id,
                 'category_id' => $service->category_id,
                 'salon_id' => $service->salon_id,
@@ -109,17 +109,20 @@ class UserServiceController extends Controller
                 'discount_price' => $service->discount_price,
                 'service_image' => $service->service_image,
                 'service_description' => $service->service_description,
-                'salon_name' => $service->salon->user->name. ' ' . $service->salon->user->last_name,
+                'salon_name' => $service->salon->user->name . ' ' . $service->salon->user->last_name,
                 'salon_address' => $service->salon->user->address,
                 'salon_image' => $service->salon->user->image,
+                'wishlist' => $service->wishlist, // Add wishlist field here
             ];
         });
 
         if ($offerService->isEmpty()) {
             return response()->json(['message' => 'No offers found']);
         }
+
         return response()->json(['message' => 'Success', 'offerService' => $offerService]);
     }
+
 
     //get e-shop products
     public function eShopProduct(Request $request)
@@ -181,7 +184,7 @@ class UserServiceController extends Controller
                 'salon_type' => $professional->salon->salon_type,
                 'rating' => number_format($reviews, 1) ?? 0,
                 'schedule_time' => $schedule,
-                
+
             ];
         });
 

@@ -29,7 +29,7 @@ class AuthController extends Controller
         return Auth::guard('api');
     }
 
-    public function register(RegisterRequest $request)
+    public function register(Request $request)
     {
         $user = User::where('email', $request->email)
             ->where('email_verified_at', null)
@@ -294,18 +294,18 @@ class AuthController extends Controller
         $user = $this->guard()->user();  // Assuming the user is authenticated
 
         if ($user->role_type == 'USER' || $user->role_type == 'ADMIN' || $user->role_type == 'SUPER ADMIN') {
-            $this->validate($request, [
-                'name' => 'required|string|max:255',
-                'last_name' => 'sometimes|string|max:255',
-                'password' => 'sometimes|confirmed|min:6',
-                'phone' => 'sometimes|string|max:15',
-                'address' => 'sometimes|string|max:255',
-                'date_of_birth' => 'sometimes|date',
-                'gender' => 'sometimes|string|in:male,female,other',
-                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
-            ]);
+            // $this->validate($request, [
+            //     'name' => 'required|string|max:255',
+            //     'last_name' => 'sometimes|string|max:255',
+            //     'password' => 'sometimes|confirmed|min:6',
+            //     'phone' => 'sometimes|string|max:15',
+            //     'address' => 'sometimes|string|max:255',
+            //     'date_of_birth' => 'sometimes|date',
+            //     'gender' => 'sometimes|string|in:male,female,other',
+            //     'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
+            // ]);
 
-            $user->name = $request->name;
+            $user->name = $request->name ?? $user->name;
             $user->last_name = $request->last_name ?? $user->last_name;
             $user->phone = $request->phone ?? $user->phone;
             $user->address = $request->address ?? $user->address;
@@ -326,24 +326,24 @@ class AuthController extends Controller
             DB::beginTransaction();
 
             try {
-                $this->validate($request, [
-                    'name' => 'required|string|max:255',
-                    'last_name' => 'sometimes|string|max:255',
-                    'email' => 'required|email|unique:users,email,' . $user->id,
-                    'password' => 'sometimes|confirmed|min:6',
-                    'phone' => 'sometimes|string|max:15',
-                    'address' => 'sometimes|string|max:255',
-                    'date_of_birth' => 'sometimes|date',
-                    'gender' => 'sometimes|string|in:male,female,other',
-                    'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-                    'experience' => 'sometimes|string|max:255',
-                    'salon_type' => 'sometimes|string|max:255',
-                    'salon_description' => 'sometimes|string|max:500',
-                    'id_card' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-                    'kbis' => 'sometimes|string|max:255',
-                    'iban_number' => 'sometimes|string|max:255',
-                    'cover_image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-                ]);
+                // $this->validate($request, [
+                //     'name' => 'required|string|max:255',
+                //     'last_name' => 'sometimes|string|max:255',
+                //     'email' => 'required|email|unique:users,email,' . $user->id,
+                //     'password' => 'sometimes|confirmed|min:6',
+                //     'phone' => 'sometimes|string|max:15',
+                //     'address' => 'sometimes|string|max:255',
+                //     'date_of_birth' => 'sometimes|date',
+                //     'gender' => 'sometimes|string|in:male,female,other',
+                //     'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                //     'experience' => 'sometimes|string|max:255',
+                //     'salon_type' => 'sometimes|string|max:255',
+                //     'salon_description' => 'sometimes|string|max:500',
+                //     'id_card' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                //     'kbis' => 'sometimes|string|max:255',
+                //     'iban_number' => 'sometimes|string|max:255',
+                //     'cover_image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                // ]);
 
                 // Update user basic details
                 $user->name = $request->name;
@@ -397,13 +397,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid role type'], 403);
     }
 
-
-
-
-
-
-
-
     /* Adding new code */
 
     //verify password reset
@@ -448,6 +441,29 @@ class AuthController extends Controller
         }
     }
 
+    public function updatePassword(Request $request)
+    {
+        $user = $this->guard()->user();
 
+        if ($user) {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:6|different:current_password',
+                'confirm_password' => 'required|string|same:new_password',
+            ]);
+
+            if ($validator->fails()) {
+                return response(['errors' => $validator->errors()], 409);
+            }
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json(['message' => 'Your current password is wrong'], 409);
+            }
+            $user->update(['password' => Hash::make($request->new_password)]);
+
+            return response(['message' => 'Password updated successfully'], 200);
+        } else {
+            return response()->json(['message' => 'You are not authorized!'], 401);
+        }
+    }
 }
 

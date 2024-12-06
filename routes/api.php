@@ -66,7 +66,7 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     Route::put('/salon-status/{id}', [SalonController::class,'salonStatus']);
 
     // category api
-    Route::resource('/categories', RCategoryController::class)->except('edit','create');
+    Route::resource('/categories', RCategoryController::class)->except('edit','create','index');
 
     // shop-category api
     Route::resource('/shop-category', ECategoryController::class)->except('edit','create','index');
@@ -77,9 +77,9 @@ Route::middleware(['admin', 'auth:api'])->group(function (){
     // admins api
     Route::resource('/admins', ManageAdminController::class)->except('edit','create');
 
-    Route::resource('/sliders', SliderController::class)->except('edit','create');
+    Route::resource('/sliders', SliderController::class)->except('edit','create','index');
 
-    Route::resource('/faqs', FaqController::class)->except('edit','create');
+    Route::resource('/faqs', FaqController::class)->except('edit','create','index');
 
     // salon invoice api
     Route::get('/salon_invoice',[SalonController::class,'salon_invoice']);
@@ -109,8 +109,8 @@ Route::middleware(['professional', 'auth:api'])->group(function (){
     //schedule time for salon
     Route::get('/schedules', [ManageSchedulController::class,'salonScheduleTime']);
     Route::post('/schedules', [ManageSchedulController::class,'storeSchedule']);
-    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
-    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
+//    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
+//    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
 
     //upcoming booking
     Route::get('/upcoming-booking', [ManageSchedulController::class,'upcomingBooking']);
@@ -143,11 +143,12 @@ Route::get('cancel', [StripeController::class, 'cancel'])->name('payment-cancel'
 Route::resource('/about-us', AboutUsController::class)->except('edit','create');
 Route::resource('/terms-condition', TermsConditionController::class)->except('edit','create');
 Route::resource('/privacy-policy', PrivacyPolicyController::class)->except('edit','create');
+Route::resource('/faqs', FaqController::class)->only('index');
 
-Route::resource('/shop-category', ECategoryController::class)->only('index');
 
 Route::middleware(['admin.professional.user','auth:api'])->group(function (){
-
+    Route::resource('/shop-category', ECategoryController::class)->only('index');
+    Route::resource('/categories', RCategoryController::class)->only('index');
 });
 
 
@@ -155,12 +156,14 @@ Route::middleware(['admin.professional.user','auth:api'])->group(function (){
 
 //USER role route
 Route::middleware(['user','auth:api'])->group(function (){
-    Route::get('/slider', [UserServiceController::class,'homeSlider']);
+    // Route::get('/slider', [UserServiceController::class,'homeSlider']);
+    Route::resource('/sliders', SliderController::class)->only('index');
     Route::get('/populer-service', [UserServiceController::class,'populerService']);
     Route::get('/cat-service/{id}', [UserServiceController::class,'caregoryService']);
     Route::get('/offer-service', [UserServiceController::class,'serviceOffer']);
     Route::get('/e-shop', [UserServiceController::class,'eShopProduct']);
 
+    Route::get('/category-wise-services', [RCategoryController::class,'categoryWiseServices']);
 
     Route::get('/profession-services/{id}', [UserServiceController::class,'findServiceByProfessional']);
 
@@ -175,4 +178,6 @@ Route::middleware(['user','auth:api'])->group(function (){
     Route::post('/place-order/{serviceId}', [OrderController::class,'placeOrder']);
     Route::put('/order-cancel/{id}', [OrderController::class,'cancelOrder']);
     Route::get('total-order-amount', [OrderController::class,'totalOrderAmount']);
+
+
 });

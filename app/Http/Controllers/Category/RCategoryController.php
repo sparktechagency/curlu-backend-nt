@@ -123,4 +123,52 @@ class RCategoryController extends Controller
             'message' => 'Category deleted successfully',
         ]);
     }
+
+    public function categoryWiseServices(Request $request)
+    {
+        $userLatitude = auth()->user()->latitude;
+        $userLongitude = auth()->user()->longitude;
+
+        $query = Category::with(['salon_services' => function ($q) use ($request, $userLatitude, $userLongitude) {
+            if ($request->filled('service_name')) {
+                $q->where('service_name', 'like', '%' . $request->service_name . '%');
+            }
+
+            // Join with the salon and user tables to get the latitude and longitude of the salon's user
+            $q->join('salons', 'salon_services.salon_id', '=', 'salons.id')
+                ->join('users', 'salons.user_id', '=', 'users.id')
+                ->select('salon_services.*', 'users.name', 'users.last_name','users.image', 'users.latitude', 'users.longitude');
+
+            // Only apply distance calculation and ordering if user's location is provided
+            if (!is_null($userLatitude) && !is_null($userLongitude)) {
+                // Calculate the distance between the authenticated user and each salon service
+                $q->selectRaw('
+                ( 6371 * acos( cos( radians(?) ) *
+                  cos( radians(users.latitude) ) *
+                  cos( radians(users.longitude) - radians(?) ) +
+                  sin( radians(?) ) *
+                  sin( radians(users.latitude) ) )
+                ) AS distance', [$userLatitude, $userLongitude, $userLatitude])
+                    ->orderBy('distance');
+            }
+        }]);
+
+        if ($request->filled('category_name')) {
+            $query->where('category_name', $request->category_name);
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('id', $request->category_id);
+        }
+
+        // Filter out categories that have no salon_services after filtering
+        $query->whereHas('salon_services', function ($q) use ($request) {
+            if ($request->filled('service_name')) {
+                $q->where('service_name', 'like', '%' . $request->service_name . '%');
+            }
+        });
+
+        $services = $query->paginate($request->per_page ?? 10);
+        return response()->json($services);
+    }
 }
