@@ -10,9 +10,14 @@ use Illuminate\Http\Request;
 class SliderController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        return $sliders = slider::paginate(12);
+        $query = slider::query();
+        if($request->filled('id')){
+            $query->where('id', $request->id);
+        }
+        $sliders = $query->paginate($request->per_page);
+        return $sliders;
     }
 
 
@@ -20,6 +25,7 @@ class SliderController extends Controller
     {
         $slider = new slider();
         $slider->slider_name = $request->slider_name;
+        $slider->slider_description = $request->slider_description;
         if ($request->hasFile('slider_image') && $request->file('slider_image')->isValid()) {
             $slider->slider_image = saveImage($request, 'slider_image');
         }
@@ -46,6 +52,7 @@ class SliderController extends Controller
             return response()->json('message', 'Slider Does Not Exist');
         }
         $slider->slider_name = $request->slider_name ?? $slider->slider_name;
+        $slider->slider_description = $request->slider_description ?? $slider->slider_description;
         if ($request->hasFile('slider_image') && $request->file('slider_image')->isValid()) {
             if($slider->slider_image){
                 removeImage($slider->slider_image);
