@@ -54,6 +54,8 @@ class AuthController extends Controller
                 $user->address = $request->address;
                 $user->phone = $request->phone;
                 $user->role_type = $request->role_type;
+                $user->latitude = $request->latitude;
+                $user->longitude = $request->longitude;
                 $user->date_of_birth = $request->date_of_birth;
                 $user->gender = $request->gender;
                 $user->otp = Str::random(6);
@@ -81,6 +83,8 @@ class AuthController extends Controller
                     $user->phone = $request->phone;
                     $user->date_of_birth = $request->date_of_birth;
                     $user->gender = $request->gender;
+                    $user->latitude = $request->latitude;
+                    $user->longitude = $request->longitude;
                     $user->role_type = $request->role_type;
                     $user->otp = Str::random(6);
                     if ($request->file('image')) {
@@ -308,6 +312,8 @@ class AuthController extends Controller
             $user->name = $request->name ?? $user->name;
             $user->last_name = $request->last_name ?? $user->last_name;
             $user->phone = $request->phone ?? $user->phone;
+            $user->latitude = $request->latitude ?? $user->latitude;
+            $user->longitude = $request->longitude ?? $user->longitude;
             $user->address = $request->address ?? $user->address;
             $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
             $user->gender = $request->gender ?? $user->gender;

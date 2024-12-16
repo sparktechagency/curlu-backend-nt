@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\USalonController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -156,6 +157,8 @@ Route::middleware(['admin.professional.user','auth:api'])->group(function (){
 
 //USER role route
 Route::middleware(['user','auth:api'])->group(function (){
+
+    Route::get('/salon-details/{id}', [USalonController::class,'salonDetails']);
     // Route::get('/slider', [UserServiceController::class,'homeSlider']);
     Route::resource('/sliders', SliderController::class)->only('index');
     Route::get('/populer-service', [UserServiceController::class,'populerService']);
