@@ -168,6 +168,7 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::get('/cat-service/{id}', [UserServiceController::class, 'caregoryService']);
     Route::get('/offer-service', [UserServiceController::class, 'serviceOffer']);
     Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
+    Route::resource('/shop-category', ECategoryController::class)->only( 'index');
 
     Route::get('/category-wise-services', [RCategoryController::class, 'categoryWiseServices']);
 

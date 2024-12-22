@@ -11,9 +11,8 @@ use App\Models\SalonScheduleTime;
 use App\Models\SalonService;
 use App\Models\slider;
 use App\Models\User;
-use Illuminate\Http\Request;
 use App\Services\UserService;
-
+use Illuminate\Http\Request;
 
 class UserServiceController extends Controller
 {
@@ -23,7 +22,6 @@ class UserServiceController extends Controller
     {
         $this->userService = $userService;
     }
-
 
     public function homeSlider(Request $request)
     {
@@ -48,9 +46,8 @@ class UserServiceController extends Controller
             ->orderBy('popular', 'desc')
             ->paginate($request->per_page ?? 10);
 
-
-        $populerService->transform(function($service) {
-            return[
+        $populerService->transform(function ($service) {
+            return [
                 'service_id' => $service->id,
                 'category_id' => $service->category_id,
                 'category_name' => $service->category->name,
@@ -62,12 +59,11 @@ class UserServiceController extends Controller
                 'service_image' => $service->service_image,
                 'service_description' => $service->service_description,
                 'popular' => $service->popular,
-                'salon_name' => $service->salon->user->name. ' ' . $service->salon->user->last_name,
+                'salon_name' => $service->salon->user->name . ' ' . $service->salon->user->last_name,
                 'salon_address' => $service->salon->user->address,
                 'salon_image' => $service->salon->user->image,
             ];
         });
-
 
         if ($populerService->isEmpty()) {
             return response()->json(['message' => 'No populer service found']);
@@ -75,13 +71,12 @@ class UserServiceController extends Controller
         return response()->json(['message' => 'Success', 'populerService' => $populerService]);
     }
 
-
     public function caregoryService(Request $request, $id)
     {
         $categoryService = SalonService::with('category')
             ->where('category_id', $id)
             ->where('service_status', 'active')
-            // ->where('popular', '>', 0)
+        // ->where('popular', '>', 0)
             ->orderBy('popular', 'desc')
             ->paginate($request->per_page ?? 10);
 
@@ -99,7 +94,7 @@ class UserServiceController extends Controller
             ->orderBy('discount_price', 'desc')
             ->paginate($request->per_page ?? 10);
 
-        $offerService->transform(function($service) {
+        $offerService->transform(function ($service) {
             return [
                 'service_id' => $service->id,
                 'category_id' => $service->category_id,
@@ -123,15 +118,18 @@ class UserServiceController extends Controller
         return response()->json(['message' => 'Success', 'offerService' => $offerService]);
     }
 
-
     //get e-shop products
     public function eShopProduct(Request $request)
     {
-        $products = Product::with('shop_category')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate($request->per_page ?? 10);
-        // $products = Product::orderBy('created_at', 'desc')
-        //     ->get();
+        $products = Product::with('shop_category');
+        if ($request->shop_category_id) {
+            $products->where('shop_category_id', $request->shop_category_id);
+        }
+        if ($request->search) {
+            $products->where('product_name', "LIKE", "%" . $request->search . "%");
+        }
+        $products = $products->orderBy('created_at', 'desc')
+            ->paginate($request->per_page ?? 10);
 
         if ($products->isEmpty()) {
             return response()->json(['message' => 'No products found']);
@@ -139,7 +137,6 @@ class UserServiceController extends Controller
 
         return response()->json(['message' => 'Success', 'products' => $products]);
     }
-
 
     //get nearby professionals services
     public function getNearbyProfessionals(Request $request)
@@ -167,11 +164,11 @@ class UserServiceController extends Controller
 
         $nearbyProfessionals = collect($nearbyProfessionals)->transform(function ($professional) {
             $schedule = SalonScheduleTime::where('salon_id', $professional->salon->id)
-                        ->get()->transform(function ($item) {
-                            return is_string($item->schedule) ? json_decode($item->schedule, true) : $item->schedule;
-                        });
+                ->get()->transform(function ($item) {
+                return is_string($item->schedule) ? json_decode($item->schedule, true) : $item->schedule;
+            });
             $reviews = Feedback::where('salon_id', $professional->salon->id)
-                    ->avg('review');
+                ->avg('review');
             return [
                 'user_id' => $professional->id,
                 'salon_id' => $professional->salon->id,
@@ -195,8 +192,6 @@ class UserServiceController extends Controller
         return response()->json(['message' => 'Success', 'nearby_professionals' => $nearbyProfessionals]);
     }
 
-
-
     public function getNearbyProfessionalsByCategory(Request $request, $id)
     {
         $user = auth()->user();
@@ -218,8 +213,6 @@ class UserServiceController extends Controller
 
         return response()->json(['message' => 'Success', 'nearbyProfessionalServices' => $nearByServiceByCategory]);
     }
-
-
 
     public function findServiceByProfessional(Request $request, $id)
     {
@@ -260,4 +253,5 @@ class UserServiceController extends Controller
             return response()->json(['message' => 'Something went wrong ' . $e->getMessage()]);
         }
     }
+
 }

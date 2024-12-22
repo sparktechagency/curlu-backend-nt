@@ -16,6 +16,9 @@ class ProductController extends Controller
         if($request->filled('shop_category_id')){
             $products=$products->where('shop_category_id',$request->shop_category_id);
         }
+        if($request->filled('product_name')){
+            $products=$products->where('product_name',"LIKE",'%'.$request->product_name."%");
+        }
         $products=$products->paginate(12);
         return response()->json($products);
     }
