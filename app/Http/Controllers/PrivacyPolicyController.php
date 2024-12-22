@@ -20,7 +20,7 @@ class PrivacyPolicyController extends Controller
         $privacy_policy->title = $request->title;
         $privacy_policy->description = $request->description;
         $privacy_policy->save();
-        return response()->json(['message' => 'Privacy and policy saved successfully']);
+        return response()->json(['message' => 'Privacy and policy saved successfully','data'=>$privacy_policy]);
     }
 
 

@@ -22,7 +22,7 @@ class FaqController extends Controller
         $faq->question = $request->question;
         $faq->answer = $request->answer;
         $faq->save();
-        return response()->json(['message' => 'Faq Added Successfully'],200);
+        return response()->json(['message' => 'Faq Added Successfully','data'=>$faq],200);
     }
 
     public function show(string $id)

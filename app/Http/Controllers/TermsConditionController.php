@@ -21,7 +21,7 @@ class TermsConditionController extends Controller
         $terms_condition->title = $request->title;
         $terms_condition->description = $request->description;
         $terms_condition->save();
-        return response()->json(['message' => 'Terms and condition saved successfully']);
+        return response()->json(['message' => 'Terms and condition saved successfully','data'=>$terms_condition]);
     }
 
 
@@ -48,7 +48,7 @@ class TermsConditionController extends Controller
         $terms_condition->title = $request->title;
         $terms_condition->description = $request->description;
         $terms_condition->save();
-        return response()->json(['message' => 'Terms and condition updated successfully']);
+        return response()->json(['message' => 'Terms and condition updated successfully','data'=>$terms_condition]);
     }
 
     public function destroy(string $id)

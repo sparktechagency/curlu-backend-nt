@@ -32,7 +32,7 @@ class ChatController extends Controller
             'receiver_id' => $request->receiver_id,
             'message' => $request->message,
         ]);
-        return response()->json(['message' => 'Message saved successfully'], 200);
+        return response()->json(['message' => 'Message saved successfully','data'=>$message], 200);
     }
 
     public function getMessage(Request $request)

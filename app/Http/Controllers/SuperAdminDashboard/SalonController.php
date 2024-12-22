@@ -18,17 +18,24 @@ class SalonController extends Controller
 {
     public function allSalon(Request $request)
     {
-        $query = Salon::with('user');
+        $query = Salon::with('user')->whereHas('user', function ($q) use ($request) {
+            $q->where('role_type', 'PROFESSIONAL');
 
-        if ($request->filled('location')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('address', 'like', '%' . $request->input('location') . '%');
-            });
-        }
+            if ($request->filled('search')) {
+                $q->where(function ($q) use ($request) {
+                    $q->where('address', 'like', '%' . $request->input('search') . '%')
+                      ->orWhere('name', 'like', '%' . $request->input('search') . '%')
+                      ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
+                      ->orWhere('email', 'like', '%' . $request->input('search') . '%')
+                      ->orWhere('phone', 'like', '%' . $request->input('search') . '%');
+                });
+            }
+        });
 
         $salons = $query->paginate(10);
         return response()->json($salons, 200);
     }
+
 
     public function addSalon(Request $request)
     {
