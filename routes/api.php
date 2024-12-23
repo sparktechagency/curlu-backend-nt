@@ -115,6 +115,7 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
     //schedule time for salon
     Route::resource('/salon-services', BSalonServiceController::class)->except('edit', 'create');
     Route::post('/schedules', [ManageSchedulController::class, 'storeSchedule']);
+    Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
 //    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
 //    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
 
@@ -181,8 +182,10 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::get('/nearby-professionals', [UserServiceController::class, 'getNearbyProfessionals']);
     Route::get('/nearby-catServices/{id}', [UserServiceController::class, 'getNearbyProfessionalsByCategory']);
 
-    Route::get('/wishlist', [WishlistController::class, 'getWishlist']);
-    Route::put('/update-wishlist/{serviceId}', [WishlistController::class, 'updateWishlist']);
+    Route::post('/service-wishlist', [WishlistController::class, 'serviceWishlistStore']);
+    Route::get('/service-wishlist', [WishlistController::class, 'serviceWishlistIndex']);
+    Route::post('/product-wishlist', [WishlistController::class, 'productWishlistStore']);
+    Route::get('/product-wishlist', [WishlistController::class, 'productWishlistIndex']);
 
     //order
     Route::get('/place-order', [OrderController::class, 'getUserOrers']);

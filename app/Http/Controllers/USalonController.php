@@ -13,7 +13,7 @@ class USalonController extends Controller
 
         $salon_details = Salon::with([
             'user:id,name,last_name,image,address',
-            'user.schedule',
+            // 'user.schedule',
             'salon_services' => function ($query) use ($perPage) {
                 $query->paginate($perPage);
             }
@@ -41,7 +41,7 @@ class USalonController extends Controller
                 'updated_at' => $salon_details->updated_at,
                 'total_seats' => $salon_details->user->schedule->capacity ?? null,
             ],
-            'schedule' => $salon_details->user->schedule->schedule,
+            // 'schedule' => $salon_details->user->schedule->schedule,
 
             'salon_services' => $salon_services,
         ];
