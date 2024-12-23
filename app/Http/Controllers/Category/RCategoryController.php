@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Models\SalonService;
+use App\Models\ServiceWishlist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RCategoryController extends Controller
 {
@@ -124,35 +126,91 @@ class RCategoryController extends Controller
         ]);
     }
 
+    // public function categoryWiseServices(Request $request)
+    // {
+    //     $userLatitude = auth()->user()->latitude;
+    //     $userLongitude = auth()->user()->longitude;
+
+    //     $query = Category::with(['salon_services' => function ($q) use ($request, $userLatitude, $userLongitude) {
+    //         if ($request->filled('service_name')) {
+    //             $q->where('service_name', 'like', '%' . $request->service_name . '%');
+    //         }
+
+    //         // Join with the salon and user tables to get the latitude and longitude of the salon's user
+    //         $q->join('salons', 'salon_services.salon_id', '=', 'salons.id')
+    //             ->join('users', 'salons.user_id', '=', 'users.id')
+    //             ->select('salon_services.*', 'users.name', 'users.last_name','users.image', 'users.latitude', 'users.longitude');
+
+    //         // Only apply distance calculation and ordering if user's location is provided
+    //         if (!is_null($userLatitude) && !is_null($userLongitude)) {
+    //             // Calculate the distance between the authenticated user and each salon service
+    //             $q->selectRaw('
+    //             ( 6371 * acos( cos( radians(?) ) *
+    //               cos( radians(users.latitude) ) *
+    //               cos( radians(users.longitude) - radians(?) ) +
+    //               sin( radians(?) ) *
+    //               sin( radians(users.latitude) ) )
+    //             ) AS distance', [$userLatitude, $userLongitude, $userLatitude])
+    //                 ->orderBy('distance');
+    //         }
+    //     }]);
+
+    //     if ($request->filled('category_name')) {
+    //         $query->where('category_name', $request->category_name);
+    //     }
+
+    //     if ($request->filled('category_id')) {
+    //         $query->where('id', $request->category_id);
+    //     }
+
+    //     $categories = $query->paginate($request->per_page ?? 10);
+
+    //     // Ensure salon_services is null if no services exist
+    //     $categories->getCollection()->transform(function ($category) {
+    //         $category->salon_services = $category->salon_services->isNotEmpty() ? $category->salon_services : null;
+    //         return $category;
+    //     });
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Categories retrieved successfully',
+    //         'data' => $categories,
+    //     ]);
+    // }
+
     public function categoryWiseServices(Request $request)
     {
         $userLatitude = auth()->user()->latitude;
         $userLongitude = auth()->user()->longitude;
+        $userId = Auth::id();
 
-        $query = Category::with(['salon_services' => function ($q) use ($request, $userLatitude, $userLongitude) {
+        // Get all service IDs in the user's wishlist
+        $wishlistServiceIds = ServiceWishlist::where('user_id', $userId)->pluck('service_id')->toArray();
+
+        $query = Category::with(['salon_services' => function ($q) use ($request, $userLatitude, $userLongitude, $wishlistServiceIds) {
             if ($request->filled('service_name')) {
                 $q->where('service_name', 'like', '%' . $request->service_name . '%');
             }
 
-            // Join with the salon and user tables to get the latitude and longitude of the salon's user
+            // Join with salons and users to get additional service data
             $q->join('salons', 'salon_services.salon_id', '=', 'salons.id')
                 ->join('users', 'salons.user_id', '=', 'users.id')
-                ->select('salon_services.*', 'users.name', 'users.last_name','users.image', 'users.latitude', 'users.longitude');
+                ->select('salon_services.*', 'users.name as user_name', 'users.last_name', 'users.image', 'users.latitude', 'users.longitude');
 
-            // Only apply distance calculation and ordering if user's location is provided
+            // Calculate distance and order by proximity if user's location is available
             if (!is_null($userLatitude) && !is_null($userLongitude)) {
-                // Calculate the distance between the authenticated user and each salon service
                 $q->selectRaw('
-                ( 6371 * acos( cos( radians(?) ) *
-                  cos( radians(users.latitude) ) *
-                  cos( radians(users.longitude) - radians(?) ) +
-                  sin( radians(?) ) *
-                  sin( radians(users.latitude) ) )
-                ) AS distance', [$userLatitude, $userLongitude, $userLatitude])
+                    ( 6371 * acos( cos( radians(?) ) *
+                      cos( radians(users.latitude) ) *
+                      cos( radians(users.longitude) - radians(?) ) +
+                      sin( radians(?) ) *
+                      sin( radians(users.latitude) ) )
+                    ) AS distance', [$userLatitude, $userLongitude, $userLatitude])
                     ->orderBy('distance');
             }
         }]);
 
+        // Filter by category name or ID if provided
         if ($request->filled('category_name')) {
             $query->where('category_name', $request->category_name);
         }
@@ -161,14 +219,27 @@ class RCategoryController extends Controller
             $query->where('id', $request->category_id);
         }
 
-        // Filter out categories that have no salon_services after filtering
-        $query->whereHas('salon_services', function ($q) use ($request) {
-            if ($request->filled('service_name')) {
-                $q->where('service_name', 'like', '%' . $request->service_name . '%');
-            }
+        // Paginate categories
+        $categories = $query->paginate($request->per_page ?? 10);
+
+        // Ensure salon_services is null if no services exist
+        $categories->getCollection()->transform(function ($category) use ($wishlistServiceIds) {
+            $category->salon_services = $category->salon_services->isNotEmpty()
+                ? $category->salon_services->map(function ($service) use ($wishlistServiceIds) {
+                    $service->in_wishlist = in_array($service->id, $wishlistServiceIds) ? true : false;
+                    return $service;
+                })
+                : null;
+
+            return $category;
         });
 
-        $services = $query->paginate($request->per_page ?? 10);
-        return response()->json($services);
+        return response()->json([
+            'status' => true,
+            'message' => 'Categories retrieved successfully',
+            'data' => $categories,
+        ]);
     }
+
+
 }

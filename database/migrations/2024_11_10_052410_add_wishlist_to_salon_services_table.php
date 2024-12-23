@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('salon_services', function (Blueprint $table) {
-            $table->boolean('wishlist')->default(0)->after('service_status');
+            // $table->boolean('wishlist')->default(0)->after('service_status');
         });
     }
 
