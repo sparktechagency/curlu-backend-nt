@@ -8,6 +8,7 @@ use App\Http\Controllers\Category\RCategoryController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\Porfessional\ManageSchedulController;
 use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\SuperAdminDashboard\ChatController;
 use App\Http\Controllers\SuperAdminDashboard\DashboardController;
@@ -112,13 +113,16 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
 
     //schedule time for salon
-    Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
+    Route::resource('/salon-services', BSalonServiceController::class)->except('edit', 'create');
     Route::post('/schedules', [ManageSchedulController::class, 'storeSchedule']);
 //    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
 //    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
 
     //upcoming booking
     Route::get('/upcoming-booking', [ManageSchedulController::class, 'upcomingBooking']);
+
+
+    Route::get('review',[ReviewController::class,'index']);
 
 });
 
@@ -185,6 +189,11 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::post('/place-order/{serviceId}', [OrderController::class, 'placeOrder']);
     Route::put('/order-cancel/{id}', [OrderController::class, 'cancelOrder']);
     Route::get('total-order-amount', [OrderController::class, 'totalOrderAmount']);
+
+    Route::get('usalon-services',[BSalonServiceController::class,'salonwiseService']);
+
+
+    Route::post('review',[ReviewController::class,'store']);
 
 });
 

@@ -64,8 +64,10 @@ class BSalonServiceController extends Controller
         $query = SalonService::with('salon.user');
 
         if (Auth::user()->role_type == 'PROFESSIONAL') {
-            // Filter by the logged-in professional's salon_id
             $query->where('salon_id', Auth::user()->id);
+        }
+        elseif (Auth::user()->role_type == 'USER') {
+            $query->where('salon_id', $request->salon_id);
         }
 
 
@@ -220,4 +222,13 @@ class BSalonServiceController extends Controller
         $service->save();
         return response()->json(['message' => 'Status updated','data'=>$service], 200);
     }
+ public function salonwiseService(Request $request){
+    $services = SalonService::query();
+
+    if($request->category_id){
+        $services=$services->where('category_id',$request->category_id);
+    }
+    $services=$services->paginate();
+    return response()->json(['data'=>$services]);
+ }
 }
