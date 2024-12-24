@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Salon;
 use App\Models\SalonScheduleTime;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Stripe\Sigma\ScheduledQueryRun;
 
 class ManageSchedulController extends Controller
 {
@@ -44,8 +42,8 @@ class ManageSchedulController extends Controller
         //     return response()->json(['message' => 'Validation failed', 'errors' => $validated->errors()]);
         // }
         $salon_id = auth()->user()->salon->id;
-        $scheduleTime = SalonScheduleTime::where('salon_id',$salon_id)->first();
-        if($scheduleTime){
+        $scheduleTime = SalonScheduleTime::where('salon_id', $salon_id)->first();
+        if ($scheduleTime) {
             $scheduleTime->schedule = $request->schedule ?? $scheduleTime->schedule;
             $scheduleTime->booking_time = $request->booking_time ?? $scheduleTime->booking_time;
             $scheduleTime->salon_id = auth()->user()->salon->id;
@@ -56,7 +54,7 @@ class ManageSchedulController extends Controller
         }
         $scheduleTime = new SalonScheduleTime();
         $scheduleTime->schedule = $request->schedule;
-        $scheduleTime->booking_time = $request->booking_time ;
+        $scheduleTime->booking_time = $request->booking_time;
         $scheduleTime->salon_id = $salon_id;
         $scheduleTime->capacity = $request->capacity;
         $scheduleTime->save();
@@ -103,7 +101,6 @@ class ManageSchedulController extends Controller
         }
     }
 
-
     // public function upcomingBooking(Request $request)
     // {
     //     $upcomingBooking = Order::where('salon_id', auth()->user()->salon->id)
@@ -120,7 +117,6 @@ class ManageSchedulController extends Controller
     //     }
 
     //     return $upcomingBooking->get();
-
 
     //     if ($upcomingBooking->isEmpty()) {
     //         return response()->json(['message' => 'No upcoming booking found']);
@@ -149,5 +145,39 @@ class ManageSchedulController extends Controller
     //     return response()->json(['message' => 'Success', 'upcomingBooking' => $upcomingBooking]);
     // }
 
-    
+    public function upcomingBooking(Request $request)
+{
+    $date = $request->date ?? now()->toDateString();
+
+    $upcomingBooking = Order::with('user:id,name,last_name')
+        ->where('salon_id', Auth::user()->id)
+        ->where('schedule_date', $date)
+        ->select('id', 'user_id', 'invoice_number', 'schedule_date', 'schedule_time')
+        ->orderByRaw("STR_TO_DATE(schedule_time, '%H:%i:%s') ASC")
+        ->get();
+
+    if ($upcomingBooking->isEmpty()) {
+        return response()->json([
+            'message' => 'No bookings found for the selected date.',
+            'data' => [],
+        ], 404);
+    }
+
+    $data = $upcomingBooking->map(function ($booking) {
+        return [
+            'user_name' => $booking->user->name . ' ' . $booking->user->last_name,
+            'invoice_number' => $booking->invoice_number,
+            'schedule_time' => \Carbon\Carbon::createFromFormat('H:i:s', trim($booking->schedule_time))
+                ->format('h:i a'),
+                'schedule_date'=>$booking->schedule_date,
+        ];
+    });
+
+    return response()->json([
+        'message' => 'Success',
+        'data' => $data,
+    ], 200);
+}
+
+
 }

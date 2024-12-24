@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AboutUsController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Barbar\BSalonServiceController;
 use App\Http\Controllers\Barbar\HomeController;
@@ -125,6 +126,8 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
 
     Route::get('review',[ReviewController::class,'index']);
 
+    Route::get('earning',[OrderController::class,'myEarning']);
+
 });
 
 Route::middleware(['super.admin', 'auth:api'])->group(function () {
@@ -198,6 +201,10 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 
     Route::post('review',[ReviewController::class,'store']);
 
+    Route::post('order-request',[OrderController::class,'orderRequest']);
+    Route::get('order-history',[OrderController::class,'orderHistory']);
+
+    Route::get('next-appointment',[AppointmentController::class,'nextAppointment']);
 });
 
 Route::resource('/sliders', SliderController::class)->only('index');

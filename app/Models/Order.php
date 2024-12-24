@@ -15,8 +15,13 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function salon()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function service()
     {
         return $this->belongsTo(SalonService::class);
     }
+
 }
