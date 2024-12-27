@@ -116,40 +116,25 @@ class BSalonServiceController extends Controller
 
     public function store(Request $request)
     {
-        // $user_id = auth()->user()->id;
-        // $salon = Salon::where('user_id',$user_id)->first();
 
-
-        // if (empty($salon)){
-        //     return response()->json(['error' => 'salon not found'], 404);
-        // }
-        // // dd($request->hasFile('service_image'));
-        //     $service = new SalonService();
-        //     if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
-        //         $service->service_image = saveImage($request, 'service_image');
-        //     }
-        //     $service->salon_id = $salon->id;
-        //     $service->category_id = $request->category_id;
-        //     $service->service_name = $request->service_name;
-        //     $service->price = $request->price;
-        //     $service->discount_price = $request->discount_price;
-        //     $service->save();
-        //     return response()->json(['message' => 'Service created successfully', 'service' => $service], 201);
         $user_id = auth()->user()->id;
         $salon = Salon::where('user_id',$user_id)->first();
         if (empty($salon)){
             return response()->json(['error' => 'salon not found'], 404);
         }
             $service = new SalonService();
-            if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
-                $service->service_image = saveImage($request, 'service_image');
-            }
-            $service->salon_id = Auth::user()->id;
+
+            $service->salon_id = $salon->id;
             $service->category_id = $request->category_id;
             $service->service_name = $request->service_name;
             $service->price = $request->price;
             $service->discount_price = $request->discount_price;
             $service->service_status = $request->service_status;
+//            $service->schedule_status = $request->schedule_status ?? null;
+
+        if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
+            $service->service_image = saveImage($request, 'service_image');
+        }
             $service->save();
             return response()->json(['message' => 'Service created successfully', 'service' => $service], 201);
     }
