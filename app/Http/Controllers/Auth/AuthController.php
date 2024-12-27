@@ -120,63 +120,32 @@ class AuthController extends Controller
         }
     }
 
-//     public function login(Request $request)
-//     {
-//         $validator = Validator::make($request->all(), [
-//             'email' => 'required|string|email',
-//             'password' => 'required|string|min:6',
-//         ]);
-//         if ($validator->fails()) {
-//             return response()->json($validator->errors(), 400);
-//         }
-//         $userData = User::where('email', $request->email)->first();
-//         if ($userData && Hash::check($request->password, $userData->password)) {
-//             if ($userData->email_verified_at == null) {
-//                 return response()->json(['message' => 'Your email is not verified'], 401);
-//             }
-//         }
-
-//         $credentials = $request->only('email', 'password');
-// //        return auth('api')->attempt($credentials);
-//         $token = $this->guard()->attempt($credentials);
-//         if ($token = $this->guard()->attempt($credentials)) {
-//             return $this->respondWithToken($token);
-//         }
-//         return response()->json(['message' => 'Your credential is wrong'], 402);
-//     }
-
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string|min:6',
         ]);
-
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
-
         $userData = User::where('email', $request->email)->first();
-
         if ($userData && Hash::check($request->password, $userData->password)) {
             if ($userData->email_verified_at == null) {
                 return response()->json(['message' => 'Your email is not verified'], 401);
             }
         }
+
         $credentials = $request->only('email', 'password');
+//        return auth('api')->attempt($credentials);
+        $token = $this->guard()->attempt($credentials);
         if ($token = $this->guard()->attempt($credentials)) {
-            $refreshToken = $this->guard()->refresh();
-
-            return response()->json([
-                'access_token' => $token,
-                'refresh_token' => $refreshToken,
-                'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60,
-            ]);
+            return $this->respondWithToken($token);
         }
-
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return response()->json(['message' => 'Your credential is wrong'], 402);
     }
+
+
 
     public function emailVerified(Request $request)
     {
@@ -214,8 +183,10 @@ class AuthController extends Controller
     public function respondWithToken($token)
     {
         $user = $this->guard()->user()->makeHidden(['otp', 'created_at', 'updated_at']);
+        $refreshToken = $this->guard()->refresh();
         return response()->json([
             'access_token' => $token,
+            'refresh_token' => $refreshToken,
             'user' => $user,
             'token_type' => 'bearer',
             'user' => $user,
