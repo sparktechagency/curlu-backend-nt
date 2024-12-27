@@ -40,5 +40,9 @@ class Salon extends Model
     {
         return $this->hasMany(SalonInvoice::class);
     }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 
 }

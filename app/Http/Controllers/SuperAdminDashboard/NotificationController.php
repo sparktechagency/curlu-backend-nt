@@ -24,7 +24,8 @@ class NotificationController extends Controller
 
     public function markRead($id)
     {
-        auth()->user()->notifications->where('id', $id)->markAsRead();
+        $notificaiton=auth()->user()->notifications->where('id', $id)->markAsRead();
         return response()->json(['message' => 'Marked as read'], 200);
     }
+    
 }

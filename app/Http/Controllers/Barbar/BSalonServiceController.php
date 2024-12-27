@@ -7,6 +7,7 @@ use App\Http\Requests\SalonServiceRequest;
 use App\Models\Salon;
 use App\Models\SalonService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BSalonServiceController extends Controller
 {
@@ -62,6 +63,16 @@ class BSalonServiceController extends Controller
         // return response()->json(['message'=> 'Success','services' => $services]);
         $query = SalonService::with('salon.user');
 
+        if (Auth::user()->role_type == 'PROFESSIONAL') {
+            $query->where('salon_id', Auth::user()->id);
+        }
+        elseif (Auth::user()->role_type == 'USER') {
+            $query->where('salon_id', $request->salon_id);
+        }
+
+
+
+
         // Search by salon->user->name and address
         if ($request->filled('user_name')) {
             $query->whereHas('salon.user', function ($q) use ($request) {
@@ -108,7 +119,6 @@ class BSalonServiceController extends Controller
 
         $user_id = auth()->user()->id;
         $salon = Salon::where('user_id',$user_id)->first();
-
         if (empty($salon)){
             return response()->json(['error' => 'salon not found'], 404);
         }
@@ -195,6 +205,15 @@ class BSalonServiceController extends Controller
         }
         $service->service_status = $status;
         $service->save();
-        return response()->json(['message' => 'Status updated'], 200);
+        return response()->json(['message' => 'Status updated','data'=>$service], 200);
     }
+ public function salonwiseService(Request $request){
+    $services = SalonService::query();
+
+    if($request->category_id){
+        $services=$services->where('category_id',$request->category_id);
+    }
+    $services=$services->paginate();
+    return response()->json(['data'=>$services]);
+ }
 }

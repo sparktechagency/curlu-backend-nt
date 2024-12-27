@@ -11,13 +11,20 @@ class UserController extends Controller
 
     public function userDetails(Request $request)
     {
-        $query = User::query()->where('role_type', 'USER');
-
-        if ($request->filled('location')) {
-            $query->where('address', 'like', '%' . $request->input('location') . '%');
+        $query = User::where('role_type', 'USER');
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('address', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('email', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('phone', 'like', '%' . $request->input('search') . '%');
+            });
         }
-        $user = $query->paginate(10);
-        return response()->json($user, 200);
+
+        $users = $query->paginate(10);
+
+        return response()->json($users, 200);
     }
 
     public function userStatus(Request $request, $id)
@@ -30,6 +37,6 @@ class UserController extends Controller
         }
         $user->user_status = $status;
         $user->save();
-        return response()->json(['message' => 'Status updated'], 200);
+        return response()->json(['message' => 'Status updated', 'data' => $user], 200);
     }
 }

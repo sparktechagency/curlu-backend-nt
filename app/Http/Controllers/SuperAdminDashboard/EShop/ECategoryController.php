@@ -74,7 +74,8 @@ class ECategoryController extends Controller
 
     public function destroy(string $id)
     {
-        $category = ShopCategory::find($id);
+        try {
+            $category = ShopCategory::find($id);
 
         if ($category->category_image){
             removeImage($category->category_image);
@@ -90,5 +91,10 @@ class ECategoryController extends Controller
         return response()->json([
             'message' => 'E-Shop Category Deleted Successfully'
         ]);
+        } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => 'E-Shop category not found.'
+        ]);}
     }
 }

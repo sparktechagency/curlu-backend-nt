@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('salon_id')->constrained('salons')->onDelete('cascade');
             $table->json('schedule');
+            $table->json('booking_time');
             $table->unsignedInteger('capacity');
             $table->timestamps();
         });

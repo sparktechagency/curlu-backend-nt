@@ -4,8 +4,8 @@ namespace App\Http\Controllers\SuperAdminDashboard;
 
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
+use App\Models\Order;
 use App\Models\Salon;
-use App\Models\SalonInvoice;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,13 +18,19 @@ class SalonController extends Controller
 {
     public function allSalon(Request $request)
     {
-        $query = Salon::with('user');
+        $query = Salon::with('user')->whereHas('user', function ($q) use ($request) {
+            $q->where('role_type', 'PROFESSIONAL');
 
-        if ($request->filled('location')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('address', 'like', '%' . $request->input('location') . '%');
-            });
-        }
+            if ($request->filled('search')) {
+                $q->where(function ($q) use ($request) {
+                    $q->where('address', 'like', '%' . $request->input('search') . '%')
+                        ->orWhere('name', 'like', '%' . $request->input('search') . '%')
+                        ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
+                        ->orWhere('email', 'like', '%' . $request->input('search') . '%')
+                        ->orWhere('phone', 'like', '%' . $request->input('search') . '%');
+                });
+            }
+        });
 
         $salons = $query->paginate(10);
         return response()->json($salons, 200);
@@ -89,20 +95,62 @@ class SalonController extends Controller
         return response()->json(['message' => 'Status updated'], 200);
     }
 
+    // public function salon_invoice(Request $request)
+    // {
+    //     $salonInvoice = SalonInvoice::with('salon', 'salon.user:id,name,image', 'payment_detail:id,invoice_number', 'service:id,service_name');
+    //     $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) {
+    //         $query->where('role_type', 'PROFESSIONAL');
+    //     });
+
+    //     if ($request->filled('salon_name')) {
+    //         $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) use ($request) {
+    //             $query->where('name', 'LIKE', '%' . $request->salon_name . '%');
+    //         });
+    //     }
+
+    //     $salonInvoice = $salonInvoice->paginate();
+    //     return response()->json(['message' => 'Data retrive successfully', 'salonInvoice' => $salonInvoice], 200);
+    // }
+
     public function salon_invoice(Request $request)
     {
-        $salonInvoice = SalonInvoice::with('salon', 'salon.user:id,name,image', 'payment_detail:id,invoice_number', 'service:id,service_name');
-        $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) {
-            $query->where('role_type', 'PROFESSIONAL');
-        });
+        $orders = Order::with('user', 'salon', 'service');
 
-        if ($request->filled('salon_name')) {
-            $salonInvoice = $salonInvoice->whereHas('salon.user', function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->salon_name . '%');
+        if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+
+            $orders = $orders->orWhereHas('salon', function ($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%');
+            });
+
+            $orders = $orders->orWhereHas('service', function ($query) use ($searchTerm) {
+                $query->where('service_name', 'like', '%' . $searchTerm . '%');
             });
         }
 
-        $salonInvoice = $salonInvoice->paginate();
-        return response()->json(['message' => 'Data retrive successfully', 'salonInvoice' => $salonInvoice], 200);
+        $orders = $orders->paginate($request->per_page ?? 10);
+
+        $orders->getCollection()->transform(function ($order) {
+            return [
+                'id' => $order->id,
+                'salon' => [
+                    'image' => $order->salon->image,
+                    'name' => $order->salon->name . ' ' . $order->salon->last_name,
+                ],
+                'service' => [
+                    'service_name' => $order->service->service_name,
+                ],
+                'invoice_number' => $order->invoice_number,
+                'confirmation_date' => $order->completed_at,
+                'payment' => $order->amount,
+                'curlu_earning' => $order->curlu_earning,
+                'salon_earning' => $order->salon_earning,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Data retrieved successfully.',
+            'data' => $orders,
+        ], 200);
     }
 }
