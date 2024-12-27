@@ -98,11 +98,7 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
     // manage haircut offer api
     Route::get('/manage-haircut', [ManageHaircutOfferController::class, 'index']);
 
-    //chat
-    Route::get('/search-user', [ChatController::class, 'searchUser']);
-    Route::post('/send-message', [ChatController::class, 'sendMessage']);
-    Route::get('/get-message', [ChatController::class, 'getMessage']);
-    Route::get('/chat-list', [ChatController::class, 'chatList']);
+
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function () {
@@ -168,7 +164,7 @@ Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
 //USER role route
 Route::middleware(['user', 'auth:api'])->group(function () {
 
-    Route::get('/salon-de   tails/{id}', [USalonController::class, 'salonDetails']);
+    Route::get('/salon-details/{id}', [USalonController::class, 'salonDetails']);
     // Route::get('/slider', [UserServiceController::class,'homeSlider']);
     // Route::resource('/sliders', SliderController::class)->only('index');
     // Route::resource('/sliders', SliderController::class)->only('index')->middleware('admin');
@@ -208,3 +204,9 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 });
 
 Route::resource('/sliders', SliderController::class)->only('index');
+
+    //chat
+    Route::get('/search-user', [ChatController::class, 'searchUser']);
+    Route::post('/send-message', [ChatController::class, 'sendMessage']);
+    Route::get('/get-message', [ChatController::class, 'getMessage']);
+    Route::get('/chat-list', [ChatController::class, 'chatList']);

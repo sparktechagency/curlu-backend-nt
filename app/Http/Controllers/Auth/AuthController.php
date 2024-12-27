@@ -3,23 +3,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterRequest;
 use App\Mail\OtpMail;
 use App\Models\Salon;
 use App\Models\User;
 use App\Notifications\NewSalonNotification;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Notification;
 
 class AuthController extends Controller
 {
@@ -44,7 +40,7 @@ class AuthController extends Controller
 
             return response(['message' => 'Please check your email for validate your email.'], 200);
         } else {
-            if ($request->role_type == 'USER' || $request->role_type == 'ADMIN' || $request->role_type == 'SUPER ADMIN'){
+            if ($request->role_type == 'USER' || $request->role_type == 'ADMIN' || $request->role_type == 'SUPER ADMIN') {
 
                 $user = new User();
                 $user->name = $request->name;
@@ -60,7 +56,7 @@ class AuthController extends Controller
                 $user->gender = $request->gender;
                 $user->otp = Str::random(6);
                 if ($request->file('image')) {
-                    $user->image = saveImage($request,'image');
+                    $user->image = saveImage($request, 'image');
                 }
                 $user->save();
 
@@ -69,7 +65,7 @@ class AuthController extends Controller
                     'message' => 'Please check your email to valid your email',
                 ]);
 
-            }elseif ($request->role_type == 'PROFESSIONAL'){
+            } elseif ($request->role_type == 'PROFESSIONAL') {
 
                 DB::beginTransaction();
 
@@ -88,7 +84,7 @@ class AuthController extends Controller
                     $user->role_type = $request->role_type;
                     $user->otp = Str::random(6);
                     if ($request->file('image')) {
-                        $user->image = saveImage($request,'image');
+                        $user->image = saveImage($request, 'image');
                     }
                     $user->save();
 
@@ -98,15 +94,15 @@ class AuthController extends Controller
                     $salon->salon_type = $request->salon_type;
                     $salon->salon_description = $request->salon_description;
                     if ($request->file('id_card')) {
-                        $salon->id_card = saveImage($request,'id_card');
+                        $salon->id_card = saveImage($request, 'id_card');
                     }
                     $salon->kbis = $request->kbis;
                     $salon->iban_number = $request->iban_number;
                     if ($request->file('cover-image')) {
-                        $salon->cover_image = saveImage($request,'cover-image');
+                        $salon->cover_image = saveImage($request, 'cover-image');
                     }
                     $salon->save();
-                    $admins=User::whereIn('role_type',['ADMIN','SUPER ADMIN'])->get();
+                    $admins = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->get();
                     foreach ($admins as $admin) {
                         $admin->notify(new NewSalonNotification($user));
                     }
@@ -124,29 +120,62 @@ class AuthController extends Controller
         }
     }
 
+//     public function login(Request $request)
+//     {
+//         $validator = Validator::make($request->all(), [
+//             'email' => 'required|string|email',
+//             'password' => 'required|string|min:6',
+//         ]);
+//         if ($validator->fails()) {
+//             return response()->json($validator->errors(), 400);
+//         }
+//         $userData = User::where('email', $request->email)->first();
+//         if ($userData && Hash::check($request->password, $userData->password)) {
+//             if ($userData->email_verified_at == null) {
+//                 return response()->json(['message' => 'Your email is not verified'], 401);
+//             }
+//         }
+
+//         $credentials = $request->only('email', 'password');
+// //        return auth('api')->attempt($credentials);
+//         $token = $this->guard()->attempt($credentials);
+//         if ($token = $this->guard()->attempt($credentials)) {
+//             return $this->respondWithToken($token);
+//         }
+//         return response()->json(['message' => 'Your credential is wrong'], 402);
+//     }
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string|min:6',
         ]);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+
         $userData = User::where('email', $request->email)->first();
+
         if ($userData && Hash::check($request->password, $userData->password)) {
             if ($userData->email_verified_at == null) {
                 return response()->json(['message' => 'Your email is not verified'], 401);
             }
         }
-
         $credentials = $request->only('email', 'password');
-//        return auth('api')->attempt($credentials);
-        $token = $this->guard()->attempt($credentials);
         if ($token = $this->guard()->attempt($credentials)) {
-            return $this->respondWithToken($token);
+            $refreshToken = $this->guard()->refresh();
+
+            return response()->json([
+                'access_token' => $token,
+                'refresh_token' => $refreshToken,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+            ]);
         }
-        return response()->json(['message' => 'Your credential is wrong'], 402);
+
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
     public function emailVerified(Request $request)
@@ -191,8 +220,8 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'user' => $user,
             'expires_in' => auth('api')
-                    ->factory()
-                    ->getTTL() * 600000000000,  // hour*seconds
+                ->factory()
+                ->getTTL() * 600000000000, // hour*seconds
         ]);
     }
 
@@ -206,7 +235,7 @@ class AuthController extends Controller
 //                ]);
 //            }
             return response()->json([
-                'user' => $user
+                'user' => $user,
             ]);
         } else {
             return response()->json(['message' => 'You are unauthorized']);
@@ -239,12 +268,12 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Your email is not exists'
+                'message' => 'Your email is not exists',
             ], 401);
         }
         if ($user->email_verified_at == null) {
             return response()->json([
-                'message' => 'Your email is not verified'
+                'message' => 'Your email is not verified',
             ], 401);
         }
         $validator = Validator::make($request->all(), [
@@ -261,7 +290,7 @@ class AuthController extends Controller
     public function resendOtp(Request $request)
     {
         $user = User::where('email', $request->email)
-            //            ->where('verify_email', 0)
+        //            ->where('verify_email', 0)
             ->first();
 
         if (!$user) {
@@ -270,10 +299,10 @@ class AuthController extends Controller
 
         // Check if OTP resend is allowed (based on time expiration)
         $currentTime = now();
-        $lastResentAt = $user->last_otp_sent_at;  // Assuming you have a column in your users table to track the last OTP sent time
+        $lastResentAt = $user->last_otp_sent_at; // Assuming you have a column in your users table to track the last OTP sent time
 
         // Define your expiration time (e.g., 5 minutes)
-        $expirationTime = 5;  // in minutes
+        $expirationTime = 5; // in minutes
 
         if ($lastResentAt && $lastResentAt->addMinutes($expirationTime)->isFuture()) {
             // Resend not allowed yet
@@ -295,7 +324,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
 
-        $user = $this->guard()->user();  // Assuming the user is authenticated
+        $user = $this->guard()->user(); // Assuming the user is authenticated
 
         if ($user->role_type == 'USER' || $user->role_type == 'ADMIN' || $user->role_type == 'SUPER ADMIN') {
             // $this->validate($request, [
@@ -325,7 +354,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Profile updated successfully!',
-                'user' => $user
+                'user' => $user,
             ], 200);
 
         } elseif ($user->role_type == 'PROFESSIONAL') {
@@ -366,7 +395,7 @@ class AuthController extends Controller
                 if ($request->file('image')) {
                     $user->image = saveImage($request, 'image');
                 }
-              // $user->save();
+                // $user->save();
 
                 // Update Professional/Salon details
                 $salon = Salon::where('user_id', $user->id)->first();
@@ -390,7 +419,7 @@ class AuthController extends Controller
                 return response()->json([
                     'message' => 'Profile and salon details updated successfully!',
                     'user' => $user,
-                    'salon' => $salon
+                    'salon' => $salon,
                 ], 200);
 
             } catch (\Exception $e) {
@@ -406,44 +435,44 @@ class AuthController extends Controller
     /* Adding new code */
 
     //verify password reset
-    public function emailVerifiedForResetPass(Request $request){
+    public function emailVerifiedForResetPass(Request $request)
+    {
 
         // dd($request->otp);
-        if(isset($request->otp)){
-            $user = User::where('otp',$request->otp)->first();
+        if (isset($request->otp)) {
+            $user = User::where('otp', $request->otp)->first();
             // dd($user);
-            if($user){
-                $validator = Validator::make($request->all(),[
-                    'password' => 'required|string|min:6|confirmed'
+            if ($user) {
+                $validator = Validator::make($request->all(), [
+                    'password' => 'required|string|min:6|confirmed',
                 ]);
-            if($validator->fails()){
-                return response()->json($validator->errors(),400);
-            }else{
-                $user->password = Hash::make($request->password);
-                $user->otp = 0;
-                $user->save();
+                if ($validator->fails()) {
+                    return response()->json($validator->errors(), 400);
+                } else {
+                    $user->password = Hash::make($request->password);
+                    $user->otp = 0;
+                    $user->save();
 
-                return response()->json(['message' => 'password reset successfully!'],200);
-            }
+                    return response()->json(['message' => 'password reset successfully!'], 200);
+                }
 
-            }else{
-                return response()->json(['message' => 'User not found!'],404);
+            } else {
+                return response()->json(['message' => 'User not found!'], 404);
             }
-        }else{
-            return response()->json(['message' => 'Token Not Found!'],404);
+        } else {
+            return response()->json(['message' => 'Token Not Found!'], 404);
         }
     }
-
 
     //user logout
 
     public function logout()
     {
-        try{
-        $this->guard()->logout();
-        return response()->json(['message' => 'Successfully logged out']);
-        }catch(\Exception $e){
-            return response()->json(['message'=> $e->getMessage()]);
+        try {
+            $this->guard()->logout();
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()]);
         }
     }
 
@@ -471,5 +500,24 @@ class AuthController extends Controller
             return response()->json(['message' => 'You are not authorized!'], 401);
         }
     }
-}
 
+    public function refresh(Request $request)
+    {
+        try {
+            $refreshToken = $request->input('refresh_token');
+            if ($refreshToken) {
+                $token = $this->guard()->setToken($refreshToken)->refresh();
+                return response()->json([
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => auth('api')->factory()->getTTL() * 60,
+                ]);
+            }
+
+            return response()->json(['message' => 'Refresh token is missing'], 400);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['message' => 'Invalid refresh token'], 401);
+        }
+    }
+
+}
