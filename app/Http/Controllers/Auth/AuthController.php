@@ -183,10 +183,10 @@ class AuthController extends Controller
     public function respondWithToken($token)
     {
         $user = $this->guard()->user()->makeHidden(['otp', 'created_at', 'updated_at']);
-        $refreshToken = $this->guard()->refresh();
+//        $refreshToken = $this->guard()->refresh();
         return response()->json([
             'access_token' => $token,
-            'refresh_token' => $refreshToken,
+//            'refresh_token' => $refreshToken,
             'user' => $user,
             'token_type' => 'bearer',
             'user' => $user,

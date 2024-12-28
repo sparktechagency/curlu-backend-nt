@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-         \App\Models\User::factory(10)->create();
+//         \App\Models\User::factory(10)->create();
 
           \App\Models\User::factory()->create([
               'name' => 'Admin',
@@ -23,25 +23,35 @@ class DatabaseSeeder extends Seeder
               'otp' => 0,
               'email_verified_at' => now(),
           ]);
+//
+//         \App\Models\User::factory()->create([
+//             'name' => 'Professional',
+//             'last_name' => 'User',
+//             'email' => 'professional@gmail.com',
+//             'password' => bcrypt('1234567Rr'),
+//             'role_type' => 'PROFESSIONAL',
+//             'otp' => 0,
+//             'email_verified_at' => now(),
+//         ]);
+//
+//       \App\Models\User::factory()->create([
+//           'name' => 'Regular',
+//           'last_name' => 'User',
+//           'email' => 'user@gmail.com',
+//           'password' => bcrypt('1234567Rr'),
+//           'role_type' => 'USER',
+//           'otp' => 0,
+//           'email_verified_at' => now(),
+//       ]);
 
-         \App\Models\User::factory()->create([
-             'name' => 'Professional',
-             'last_name' => 'User',
-             'email' => 'professional@gmail.com',
-             'password' => bcrypt('1234567Rr'),
-             'role_type' => 'PROFESSIONAL',
-             'otp' => 0,
-             'email_verified_at' => now(),
-         ]);
-
-       \App\Models\User::factory()->create([
-           'name' => 'Regular',
-           'last_name' => 'User',
-           'email' => 'user@gmail.com',
-           'password' => bcrypt('1234567Rr'),
-           'role_type' => 'USER',
-           'otp' => 0,
-           'email_verified_at' => now(),
-       ]);
+//        \App\Models\User::factory()->create([
+//            'name' => 'Super Admin',
+//            'last_name' => 'Super Admin',
+//            'email' => 'superadmin@gmail.com',
+//            'password' => bcrypt('1234567Rr'),
+//            'role_type' => 'SUPER ADMIN',
+//            'otp' => 0,
+//            'email_verified_at' => now(),
+//        ]);
     }
 }
