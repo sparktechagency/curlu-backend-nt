@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Salon;
+use App\Models\SalonScheduleTime;
 use Illuminate\Http\Request;
 
 class USalonController extends Controller
@@ -13,13 +14,18 @@ class USalonController extends Controller
 
         $salon_details = Salon::with([
             'user:id,name,last_name,image,address',
-            // 'user.schedule',
+            'salon_schedule_time',
             'salon_services' => function ($query) use ($perPage) {
                 $query->paginate($perPage);
-            }
+            },
         ])->where('id', $id)->first();
-
         $salon_services = $salon_details->salon_services()->paginate($perPage);
+        $salonScheduleTime = SalonScheduleTime::where('salon_id', $salon_details->id)->first();
+
+        if ($salonScheduleTime) {
+            $salonScheduleTime->schedule = json_decode($salonScheduleTime->schedule, true);
+            $salonScheduleTime->booking_time = json_decode($salonScheduleTime->booking_time, true);
+        }
 
         $response = [
             'cover_image' => $salon_details->cover_image,
@@ -27,7 +33,7 @@ class USalonController extends Controller
             'address' => $salon_details->user->address,
             'name' => $salon_details->user->name,
             'last_name' => $salon_details->user->last_name,
-            'rating'=> null,
+            'rating' => null,
             'profile' => [
                 'id' => $salon_details->id,
                 'user_id' => $salon_details->user_id,
@@ -41,11 +47,31 @@ class USalonController extends Controller
                 'updated_at' => $salon_details->updated_at,
                 'total_seats' => $salon_details->user->schedule->capacity ?? null,
             ],
-            // 'schedule' => $salon_details->user->schedule->schedule,
-
+            'schedule' => $salonScheduleTime,
             'salon_services' => $salon_services,
         ];
 
         return response()->json($response);
     }
+
 }
+
+// public function salonScheduleTimeById(Request $request,$id)
+// {
+//     $salonScheduleTime = SalonScheduleTime::where('salon_id', $id)
+//         ->get();
+
+//     if ($salonScheduleTime->isEmpty()) {
+//         return response()->json(['message' => 'No salon schedule time found']);
+//     }
+
+//     $salonScheduleTime->transform(function ($scheduleTime) {
+//         $schedule = json_decode($scheduleTime->schedule);
+//         $bookingTime = json_decode($scheduleTime->booking_time);
+//         $scheduleTime->schedule = $schedule;
+//         $scheduleTime->booking_time = $bookingTime;
+//         return $scheduleTime;
+//     });
+
+//     return response()->json(['data' => $salonScheduleTime]);
+// }

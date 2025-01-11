@@ -17,19 +17,19 @@ class WishlistController extends Controller
     public function serviceWishlistIndex(Request $request)
     {
         $userId = Auth::id();
-        $wishlistServiceIds = ServiceWishlist::where('user_id', $userId)->pluck('service_id')->toArray();
+        $wishlistServiceIds = ServiceWishlist::with('service')->where('user_id', $userId)->get();
 
-        $services = SalonService::paginate($request->per_page ?? 10);
+        // $services = SalonService::paginate($request->per_page ?? 10);
 
-        $services->getCollection()->transform(function ($service) use ($wishlistServiceIds) {
-            $service->in_wishlist = in_array($service->id, $wishlistServiceIds);
-            return $service;
-        });
+        // $services->getCollection()->transform(function ($service) use ($wishlistServiceIds) {
+        //     $service->in_wishlist = in_array($service->id, $wishlistServiceIds);
+        //     return $service;
+        // });
 
         return response()->json([
             'status' => true,
             'message' => 'Services retrieved successfully.',
-            'data' => $services,
+            'data' => $wishlistServiceIds,
         ], 200);
     }
 
@@ -78,19 +78,20 @@ class WishlistController extends Controller
     public function productWishlistIndex(Request $request)
     {
         $userId = Auth::id();
-        $wishlistProductIds = ProductWishlist::where('user_id', $userId)->pluck('product_id')->toArray();
+        // $wishlistProductIds = ProductWishlist::where('user_id', $userId)->pluck('product_id')->toArray();
+        $wishlistProductIds = ProductWishlist::with('product')->where('user_id', $userId)->get();
 
-        $products = Product::paginate($request->per_page ?? 10);
+        // $products = Product::paginate($request->per_page ?? 10);
 
-        $products->getCollection()->transform(function ($product) use ($wishlistProductIds) {
-            $product->in_wishlist = in_array($product->id, $wishlistProductIds);
-            return $product;
-        });
+        // $products->getCollection()->transform(function ($product) use ($wishlistProductIds) {
+        //     $product->in_wishlist = in_array($product->id, $wishlistProductIds);
+        //     return $product;
+        // });
 
         return response()->json([
             'status' => true,
             'message' => 'Products retrieved successfully.',
-            'data' => $products,
+            'data' => $wishlistProductIds,
         ], 200);
     }
 

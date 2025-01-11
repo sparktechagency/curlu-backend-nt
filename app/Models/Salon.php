@@ -12,15 +12,17 @@ class Salon extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'experience',
-        'salon_type',
-        'salon_description',
-        'id_card',
-        'iban_number',
-        'kbis',
-    ];
+    // protected $fillable = [
+    //     'user_id',
+    //     'experience',
+    //     'salon_type',
+    //     'salon_description',
+    //     'id_card',
+    //     'iban_number',
+    //     'kbis',
+    // ];
+
+    protected $guarded=['id'];
 //    protected $table = 'salons';
 
     public function user(): BelongsTo

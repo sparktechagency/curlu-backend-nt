@@ -64,7 +64,8 @@ class BSalonServiceController extends Controller
         $query = SalonService::with('salon.user');
 
         if (Auth::user()->role_type == 'PROFESSIONAL') {
-            $query->where('salon_id', Auth::user()->id);
+            $salon = Salon::where('user_id',Auth::user()->id)->first();
+            $query->where('salon_id', $salon->id);
         }
         elseif (Auth::user()->role_type == 'USER') {
             $query->where('salon_id', $request->salon_id);
@@ -111,7 +112,6 @@ class BSalonServiceController extends Controller
         $services = $query->paginate();
 
         return response()->json($services);
-
     }
 
     public function store(Request $request)

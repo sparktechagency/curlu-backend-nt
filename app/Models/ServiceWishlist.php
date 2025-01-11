@@ -9,4 +9,7 @@ class ServiceWishlist extends Model
 {
     use HasFactory;
     protected $guarded=["id"];
+    public function service(){
+        return $this->belongsTo(SalonService::class);
+    }
 }

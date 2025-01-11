@@ -10,4 +10,8 @@ class ProductWishlist extends Model
     use HasFactory;
 
     protected $guarded=["id"];
+
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
 }

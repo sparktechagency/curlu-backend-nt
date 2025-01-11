@@ -76,64 +76,119 @@ class ChatController extends Controller
     //     return response()->json($msg);
     // }
 
+    // public function chatList(Request $request)
+    // {
+
+    //     $chatList = Message::with('receiver:id,name,last_name,email,role_type,image', 'sender:id,name,last_name,email,role_type,image')
+    //         ->where(function ($query) use ($request) {
+    //             $query->where('sender_id', Auth::user()->id)
+    //                 ->orWhere('receiver_id', Auth::user()->id);
+    //         });
+
+    //     if ($request->role_type === 'USER') {
+    //         $chatList = $chatList->whereHas('receiver', function ($q) use ($request) {
+    //             if ($request->search) {
+    //                 $q->where(function ($q) use ($request) {
+    //                     $q->where('name', 'like', '%' . $request->search . '%')
+    //                         ->orWhere('last_name', 'like', '%' . $request->search . '%');
+    //                 });
+    //             }
+    //             $q->where('role_type', 'USER');
+    //         })->orWhereHas('sender', function ($q) use ($request) {
+    //             if ($request->search) {
+    //                 $q->where(function ($q) use ($request) {
+    //                     $q->where('name', 'like', '%' . $request->search . '%')
+    //                         ->orWhere('last_name', 'like', '%' . $request->search . '%');
+    //                 });
+    //             }
+    //             $q->where('role_type', 'USER');
+    //         });
+    //     }
+
+    //     if ($request->role_type === 'PROFESSIONAL') {
+    //         $chatList = $chatList->whereHas('receiver', function ($q) use ($request) {
+    //             if ($request->search) {
+    //                 $q->where(function ($q) use ($request) {
+    //                     $q->where('name', 'like', '%' . $request->search . '%')
+    //                         ->orWhere('last_name', 'like', '%' . $request->search . '%');
+    //                 });
+    //             }
+    //             $q->where('role_type', 'PROFESSIONAL');
+    //         })->orWhereHas('sender', function ($q) use ($request) {
+    //             if ($request->search) {
+    //                 $q->where(function ($q) use ($request) {
+    //                     $q->where('name', 'like', '%' . $request->search . '%')
+    //                         ->orWhere('last_name', 'like', '%' . $request->search . '%');
+    //                 });
+    //             }
+    //             $q->where('role_type', 'PROFESSIONAL');
+    //         });
+    //     }
+
+    //     $chatList = $chatList->latest('created_at')->get()->unique(function ($message) {
+    //         return $message->sender_id === Auth::user()->id
+    //         ? $message->receiver_id
+    //         : $message->sender_id;
+    //     });
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'chat_list' => $chatList,
+    //     ]);
+    // }
+
+
     public function chatList(Request $request)
-    {
-        $chatList = Message::with('receiver:id,name,last_name,role_type,image', 'sender:id,name,last_name,role_type,image')
-            ->where(function ($query) use ($request) {
-                $query->where('sender_id', Auth::user()->id)
-                    ->orWhere('receiver_id', Auth::user()->id);
-            });
+{
+    $userId = Auth::user()->id;
+    $roleType = $request->role_type; // Either 'USER' or 'PROFESSIONAL'
+    $search = $request->search;
 
-        if ($request->role_type === 'USER') {
-            $chatList = $chatList->whereHas('receiver', function ($q) use ($request) {
-                if ($request->search) {
-                    $q->where(function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->search . '%')
-                            ->orWhere('last_name', 'like', '%' . $request->search . '%');
-                    });
-                }
-                $q->where('role_type', 'USER');
-            })->orWhereHas('sender', function ($q) use ($request) {
-                if ($request->search) {
-                    $q->where(function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->search . '%')
-                            ->orWhere('last_name', 'like', '%' . $request->search . '%');
-                    });
-                }
-                $q->where('role_type', 'USER');
-            });
-        }
+    // Base query with eager loading
+    $chatList = Message::with([
+        'receiver:id,name,last_name,email,role_type,image',
+        'sender:id,name,last_name,email,role_type,image'
+    ])->where(function ($query) use ($userId) {
+        $query->where('sender_id', $userId)
+              ->orWhere('receiver_id', $userId);
+    });
 
-        if ($request->role_type === 'PROFESSIONAL') {
-            $chatList = $chatList->whereHas('receiver', function ($q) use ($request) {
-                if ($request->search) {
-                    $q->where(function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->search . '%')
-                            ->orWhere('last_name', 'like', '%' . $request->search . '%');
+    // Apply role type filtering
+    if ($roleType) {
+        $chatList = $chatList->where(function ($query) use ($roleType, $search) {
+            $query->whereHas('receiver', function ($q) use ($roleType, $search) {
+                $q->where('role_type', $roleType);
+                if ($search) {
+                    $q->where(function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%')
+                          ->orWhere('last_name', 'like', '%' . $search . '%');
                     });
                 }
-                $q->where('role_type', 'PROFESSIONAL');
-            })->orWhereHas('sender', function ($q) use ($request) {
-                if ($request->search) {
-                    $q->where(function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->search . '%')
-                            ->orWhere('last_name', 'like', '%' . $request->search . '%');
+            })->orWhereHas('sender', function ($q) use ($roleType, $search) {
+                $q->where('role_type', $roleType);
+                if ($search) {
+                    $q->where(function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%')
+                          ->orWhere('last_name', 'like', '%' . $search . '%');
                     });
                 }
-                $q->where('role_type', 'PROFESSIONAL');
             });
-        }
+        });
+    }
 
-        $chatList = $chatList->latest('created_at')->get()->unique(function ($message) {
-            return $message->sender_id === Auth::user()->id
+    // Fetch and remove duplicate chat entries
+    $chatList = $chatList->latest('created_at')->get()->unique(function ($message) use ($userId) {
+        return $message->sender_id === $userId
             ? $message->receiver_id
             : $message->sender_id;
-        });
+    })->values()->toArray(); // Reindex and convert to array
 
-        return response()->json([
-            'status' => true,
-            'chat_list' => $chatList,
-        ]);
-    }
+    // Standard JSON response
+    return response()->json([
+        'status' => true,
+        'chat_list' => $chatList,
+    ]);
+}
+
 
 }

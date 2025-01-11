@@ -10,8 +10,9 @@ class PaymentDetail extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'email','amount','description','due_date','invoice_number','paid','link','stripe_payment_id'];
+    // protected $fillable = ['user_id', 'email','amount','description','due_date','invoice_number','paid','link','stripe_payment_id'];
 
+    protected $guarded=['id'];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

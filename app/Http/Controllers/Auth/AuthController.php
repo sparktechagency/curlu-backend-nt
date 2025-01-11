@@ -145,8 +145,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Your credential is wrong'], 402);
     }
 
-
-
     public function emailVerified(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -183,10 +181,10 @@ class AuthController extends Controller
     public function respondWithToken($token)
     {
         $user = $this->guard()->user()->makeHidden(['otp', 'created_at', 'updated_at']);
-        $refreshToken = $this->guard()->refresh();
+        // $refreshToken = $this->guard()->refresh();
         return response()->json([
             'access_token' => $token,
-            'refresh_token' => $refreshToken,
+            // 'refresh_token' => $refreshToken,
             'user' => $user,
             'token_type' => 'bearer',
             'user' => $user,
@@ -329,6 +327,7 @@ class AuthController extends Controller
             ], 200);
 
         } elseif ($user->role_type == 'PROFESSIONAL') {
+
             DB::beginTransaction();
 
             try {
@@ -354,7 +353,7 @@ class AuthController extends Controller
                 // Update user basic details
                 $user->name = $request->name;
                 $user->last_name = $request->last_name ?? $user->last_name;
-                $user->email = $request->email;
+                $user->email = $request->email ?? $user->email;
                 if ($request->password) {
                     $user->password = Hash::make($request->password);
                 }
@@ -366,7 +365,7 @@ class AuthController extends Controller
                 if ($request->file('image')) {
                     $user->image = saveImage($request, 'image');
                 }
-                // $user->save();
+                $user->save();
 
                 // Update Professional/Salon details
                 $salon = Salon::where('user_id', $user->id)->first();
@@ -380,7 +379,15 @@ class AuthController extends Controller
                 $salon->kbis = $request->kbis ?? $salon->kbis;
                 $salon->iban_number = $request->iban_number ?? $salon->iban_number;
                 if ($request->file('cover_image')) {
-                    $salon->cover_image = saveImage($request, 'cover_image');
+                    if ($salon->cover_image && file_exists(public_path($salon->cover_image))) {
+                        unlink(public_path($salon->cover_image));
+                    }
+                    $file = $request->file('cover_image');
+                    $path = 'adminAsset/cover_image';
+                    $filename = time() . '.' . $file->getClientOriginalExtension();
+                    $file->move(public_path($path), $filename);
+                    $final_path = $path . '/' . $filename;
+                    $salon->cover_image = $final_path;
                 }
 
                 $salon->save();

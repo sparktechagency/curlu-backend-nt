@@ -90,6 +90,7 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
     // notification
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notification/markread/{id}', [NotificationController::class, 'markRead']);
+    Route::post('mark-all-notification', [NotificationController::class, 'allMark'])->name('allMark');
 
     // feedback api
     Route::get('/feedback', [FeedbackController::class, 'index']);
@@ -103,7 +104,7 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
 
 Route::middleware(['professional', 'auth:api'])->group(function () {
     // salon service
-    Route::resource('/salon-services', BSalonServiceController::class)->except('edit', 'create');
+    // Route::resource('/salon-services', BSalonServiceController::class)->except('edit', 'create');
     Route::put('/service-status/{id}', [BSalonServiceController::class, 'serviceStatus']);
 
     Route::get('/show-products', [HomeController::class, 'showProducts']);
@@ -159,6 +160,12 @@ Route::resource('/faqs', FaqController::class)->only('index');
 Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
     Route::resource('/shop-category', ECategoryController::class)->only('index');
     Route::resource('/categories', RCategoryController::class)->only('index');
+
+        //chat
+        Route::get('/search-user', [ChatController::class, 'searchUser']);
+        Route::post('/send-message', [ChatController::class, 'sendMessage']);
+        Route::get('/get-message', [ChatController::class, 'getMessage']);
+        Route::get('/chat-list', [ChatController::class, 'chatList']);
 });
 
 //USER role route
@@ -183,6 +190,7 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 
     Route::post('/service-wishlist', [WishlistController::class, 'serviceWishlistStore']);
     Route::get('/service-wishlist', [WishlistController::class, 'serviceWishlistIndex']);
+
     Route::post('/product-wishlist', [WishlistController::class, 'productWishlistStore']);
     Route::get('/product-wishlist', [WishlistController::class, 'productWishlistIndex']);
 
@@ -205,8 +213,8 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 
 Route::resource('/sliders', SliderController::class)->only('index');
 
-    //chat
-    Route::get('/search-user', [ChatController::class, 'searchUser']);
-    Route::post('/send-message', [ChatController::class, 'sendMessage']);
-    Route::get('/get-message', [ChatController::class, 'getMessage']);
-    Route::get('/chat-list', [ChatController::class, 'chatList']);
+    // //chat
+    // Route::get('/search-user', [ChatController::class, 'searchUser']);
+    // Route::post('/send-message', [ChatController::class, 'sendMessage']);
+    // Route::get('/get-message', [ChatController::class, 'getMessage']);
+    // Route::get('/chat-list', [ChatController::class, 'chatList']);

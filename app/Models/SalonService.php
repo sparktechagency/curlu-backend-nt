@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SalonService extends Model
 {
     use HasFactory;
-    protected $fillable = ['wishlist'];
+    // protected $fillable = ['wishlist'];
+    protected $guarded=['id'];
 
     public function salon():BelongsTo
     {
@@ -22,5 +23,9 @@ class SalonService extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function wishlist(){
+        return $this->belongsTo(ServiceWishlist::class);
     }
 }

@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Feedback;
 use App\Models\Product;
+use App\Models\ProductWishlist;
 use App\Models\Salon;
 use App\Models\SalonScheduleTime;
 use App\Models\SalonService;
+use App\Models\ServiceWishlist;
 use App\Models\slider;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserServiceController extends Controller
 {
@@ -95,7 +98,12 @@ class UserServiceController extends Controller
             ->paginate($request->per_page ?? 10);
 
         $offerService->transform(function ($service) {
+
+            $isInWishlist = ServiceWishlist::where('service_id', $service->id)
+                ->where('user_id', Auth::user()->id)
+                ->exists();
             return [
+                'id' => $service->id,
                 'service_id' => $service->id,
                 'category_id' => $service->category_id,
                 'salon_id' => $service->salon_id,
@@ -107,7 +115,7 @@ class UserServiceController extends Controller
                 'salon_name' => $service->salon->user->name . ' ' . $service->salon->user->last_name,
                 'salon_address' => $service->salon->user->address,
                 'salon_image' => $service->salon->user->image,
-                'wishlist' => $service->wishlist, // Add wishlist field here
+                'wishlist' => $isInWishlist,
             ];
         });
 
@@ -121,6 +129,7 @@ class UserServiceController extends Controller
     //get e-shop products
     public function eShopProduct(Request $request)
     {
+        $userId = Auth::id();
         $products = Product::with('shop_category');
         if ($request->shop_category_id) {
             $products->where('shop_category_id', $request->shop_category_id);
@@ -134,7 +143,12 @@ class UserServiceController extends Controller
         if ($products->isEmpty()) {
             return response()->json(['message' => 'No products found']);
         }
+        $wishlistProductIds = ProductWishlist::where('user_id', $userId)->pluck('product_id')->toArray();
 
+        $products->getCollection()->transform(function ($product) use ($wishlistProductIds) {
+            $product->in_wishlist = in_array($product->id, $wishlistProductIds);
+            return $product;
+        });
         return response()->json(['message' => 'Success', 'products' => $products]);
     }
 

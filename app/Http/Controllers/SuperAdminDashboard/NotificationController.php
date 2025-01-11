@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\SuperAdminDashboard;
 
-use App\Http\Controllers\Controller;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -27,5 +30,31 @@ class NotificationController extends Controller
         $notificaiton=auth()->user()->notifications->where('id', $id)->markAsRead();
         return response()->json(['message' => 'Marked as read'], 200);
     }
-    
+
+    public function allMark(Request $request)
+    {
+        try {
+            $notifications = Auth::user()->unreadNotifications;
+
+            if ($notifications->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No unread notifications found.',
+                ], 404);
+            }
+
+            $notifications->markAsRead();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'All notifications marked as read successfully.',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while marking notifications.',
+            ], 500);
+        }
+    }
+
 }
