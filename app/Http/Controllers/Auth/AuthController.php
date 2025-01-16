@@ -198,11 +198,13 @@ class AuthController extends Controller
     {
         if ($this->guard()->user()) {
             $user = $this->guard()->user();
-//            if ($user->role_type == 'PROFESSIONAL') {
-//                return response()->json([
-//                    'user' => $user,
-//                ]);
-//            }
+           if ($user->role_type == 'PROFESSIONAL') {
+            $salon = $user->salon;
+
+            return response()->json([
+                'user' => $user,
+            ]);
+           }
             return response()->json([
                 'user' => $user,
             ]);

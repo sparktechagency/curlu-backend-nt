@@ -28,4 +28,6 @@ class SalonService extends Model
     public function wishlist(){
         return $this->belongsTo(ServiceWishlist::class);
     }
+
+
 }

@@ -14,32 +14,36 @@ const users = {};
 const groups = {};
 
 io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    const userId = socket.handshake.query.userId
+    users[userId] = socket.id;
+    console.log('socket is',socket.id,'user id ',userId);
+    console.log(users);
+    // console.log(`User connected: ${socket.id}`);
 
     // 'login' event with socket ID
-    socket.on("login", ({ userId }) => {
-        users[userId] = socket.id;
-        console.log(`User logged in: ${userId}`);
-        io.emit("login", userId);
-    });
+    // socket.on("login", ({ userId }) => {
+    //     users[userId] = socket.id;
+    //     console.log(`User logged in: ${userId}`);
+    //     io.emit("login", userId);
+    // });
 
     // private messages
     socket.on("private-message", ({ receiverId, message }) => {
         const senderId = socket.id;
         console.log(
-            `Sending private message from ${senderId} to ${receiverId}: ${message}`
+            `Sending private message from ${userId} to ${receiverId}: ${message}`
         );
 
         // Check if the receiver is online
         if (users[receiverId]) {
             io.to(users[receiverId]).emit("private-message", {
-                senderId,
+                receiver_id:receiverId,
                 message,
             });
-            io.to(senderId).emit("private-message", {
-                senderId,
-                message,
-            });
+            // io.to(senderId).emit("private-message", {
+            //     senderId,
+            //     message,
+            // });
         } else {
             console.log(`User ${receiverId} not found or offline.`);
         }
@@ -77,7 +81,7 @@ io.on("connection", (socket) => {
 
     // Handle user disconnection and clean up
     socket.on("disconnect", () => {
-        console.log(`User disconnected: ${socket.id}`);
+        // console.log(`User disconnected: ${socket.id}`);
 
         // Clean up user from the users object
         for (const [userId, socketId] of Object.entries(users)) {
@@ -86,7 +90,7 @@ io.on("connection", (socket) => {
                 break;
             }
         }
-        console.log("Current users:", users);
+        // console.log("Current users:", users);
     });
 });
 
