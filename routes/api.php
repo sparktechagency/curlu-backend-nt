@@ -113,7 +113,7 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
     //schedule time for salon
     Route::resource('/salon-services', BSalonServiceController::class)->except('edit', 'create');
     Route::post('/schedules', [ManageSchedulController::class, 'storeSchedule']);
-    Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
+    // Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
 //    Route::put('/schedules/{id}', [ManageSchedulController::class,'updateSchedule']);
 //    Route::delete('/schedules/{id}', [ManageSchedulController::class,'deleteSchedule']);
 
@@ -167,7 +167,7 @@ Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
         Route::get('/get-message', [ChatController::class, 'getMessage']);
         Route::get('/chat-list', [ChatController::class, 'chatList']);
 
-
+        Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
 });
 
 //USER role route
@@ -209,7 +209,9 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 
     Route::post('order-request',[OrderController::class,'orderRequest']);
     Route::get('order-history',[OrderController::class,'orderHistory']);
+    Route::get('service-details/{id}',[BSalonServiceController::class,'serviceDetails']);
 
+    Route::post('schedule',[ManageSchedulController::class,'schedule']);
     Route::get('next-appointment',[AppointmentController::class,'nextAppointment']);
 });
 
