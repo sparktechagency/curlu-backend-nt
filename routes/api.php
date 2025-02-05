@@ -99,7 +99,6 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
     // manage haircut offer api
     Route::get('/manage-haircut', [ManageHaircutOfferController::class, 'index']);
 
-
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function () {
@@ -120,10 +119,9 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
     //upcoming booking
     Route::get('/upcoming-booking', [ManageSchedulController::class, 'upcomingBooking']);
 
+    Route::get('review', [ReviewController::class, 'index']);
 
-    Route::get('review',[ReviewController::class,'index']);
-
-    Route::get('earning',[OrderController::class,'myEarning']);
+    Route::get('earning', [OrderController::class, 'myEarning']);
 
 });
 
@@ -139,11 +137,11 @@ Route::middleware(['super.admin', 'auth:api'])->group(function () {
 //    Route::get('/payment/{slug}', [PaymentController::class, 'paymentCheckout'])->name('payment-checkout');
 //    Route::get('/payment/success/{session_id}', [PaymentController::class, 'paymentSuccess'])->name('payment-success');
 //    Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
-Route::post('create-connect-account', [StripeController::class, 'connectAccount'])->name('connectAccount');
-Route::get('getOnboardingLink/{account_id}', [StripeController::class, 'getOnboardingLink'])->name('getOnboardingLink');
-Route::post('payment-request', [StripeController::class, 'createCheckoutSession'])->name('payment-request');
-Route::get('success', [StripeController::class, 'success'])->name('payment-success');
-Route::get('cancel', [StripeController::class, 'cancel'])->name('payment-cancel');
+// Route::post('create-connect-account', [StripeController::class, 'connectAccount'])->name('connectAccount');
+// Route::get('getOnboardingLink/{account_id}', [StripeController::class, 'getOnboardingLink'])->name('getOnboardingLink');
+// Route::post('payment-request', [StripeController::class, 'createCheckoutSession'])->name('payment-request');
+// Route::get('success', [StripeController::class, 'success'])->name('payment-success');
+// Route::get('cancel', [StripeController::class, 'cancel'])->name('payment-cancel');
 
 // testing connected account
 Route::post('create_account', [StripeController::class, 'createConnectedAccount'])->name('create_account');
@@ -161,13 +159,16 @@ Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
     Route::resource('/shop-category', ECategoryController::class)->only('index');
     Route::resource('/categories', RCategoryController::class)->only('index');
 
-        //chat
-        Route::get('/search-user', [ChatController::class, 'searchUser']);
-        Route::post('/send-message', [ChatController::class, 'sendMessage']);
-        Route::get('/get-message', [ChatController::class, 'getMessage']);
-        Route::get('/chat-list', [ChatController::class, 'chatList']);
+    //chat
+    Route::get('/search-user', [ChatController::class, 'searchUser']);
+    Route::post('/send-message', [ChatController::class, 'sendMessage']);
+    Route::get('/get-message', [ChatController::class, 'getMessage']);
+    Route::get('/chat-list', [ChatController::class, 'chatList']);
 
-        Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
+    Route::get('/schedules', [ManageSchedulController::class, 'salonScheduleTime']);
+    Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
+
+    Route::post('create-connected-account', [StripeController::class, 'createStripeConnectedAccount']);
 });
 
 //USER role route
@@ -202,23 +203,23 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::put('/order-cancel/{id}', [OrderController::class, 'cancelOrder']);
     Route::get('total-order-amount', [OrderController::class, 'totalOrderAmount']);
 
-    Route::get('usalon-services',[BSalonServiceController::class,'salonwiseService']);
+    Route::get('usalon-services', [BSalonServiceController::class, 'salonwiseService']);
 
+    Route::post('review', [ReviewController::class, 'store']);
 
-    Route::post('review',[ReviewController::class,'store']);
+    Route::post('order-request', [OrderController::class, 'orderRequest']);
+    Route::get('order-history', [OrderController::class, 'orderHistory']);
+    Route::get('service-details/{id}', [BSalonServiceController::class, 'serviceDetails']);
 
-    Route::post('order-request',[OrderController::class,'orderRequest']);
-    Route::get('order-history',[OrderController::class,'orderHistory']);
-    Route::get('service-details/{id}',[BSalonServiceController::class,'serviceDetails']);
-
-    Route::post('schedule',[ManageSchedulController::class,'schedule']);
-    Route::get('next-appointment',[AppointmentController::class,'nextAppointment']);
+    Route::post('schedule', [ManageSchedulController::class, 'schedule']);
+    Route::get('next-appointment', [AppointmentController::class, 'nextAppointment']);
 });
 
 Route::resource('/sliders', SliderController::class)->only('index');
-Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
-    // //chat
-    // Route::get('/search-user', [ChatController::class, 'searchUser']);
-    // Route::post('/send-message', [ChatController::class, 'sendMessage']);
-    // Route::get('/get-message', [ChatController::class, 'getMessage']);
-    // Route::get('/chat-list', [ChatController::class, 'chatList']);
+// Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
+
+// //chat
+// Route::get('/search-user', [ChatController::class, 'searchUser']);
+// Route::post('/send-message', [ChatController::class, 'sendMessage']);
+// Route::get('/get-message', [ChatController::class, 'getMessage']);
+// Route::get('/chat-list', [ChatController::class, 'chatList']);

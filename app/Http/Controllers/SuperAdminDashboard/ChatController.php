@@ -37,8 +37,9 @@ class ChatController extends Controller
 
     public function getMessage(Request $request)
     {
+        $per_page=$request->per_page;
         $messages = Message::where('sender_id', Auth::user()->id)->where('receiver_id', $request->receiver_id)
-            ->get();
+            ->paginate($per_page ?? 10);
         return response()->json($messages);
     }
 

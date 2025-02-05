@@ -14,9 +14,9 @@ const users = {};
 const groups = {};
 
 io.on("connection", (socket) => {
-    const userId = socket.handshake.query.userId
+    const userId = socket.handshake.query.userId;
     users[userId] = socket.id;
-    console.log('socket is',socket.id,'user id ',userId);
+    console.log("socket is", socket.id, "user id ", userId);
     console.log(users);
     // console.log(`User connected: ${socket.id}`);
 
@@ -28,17 +28,18 @@ io.on("connection", (socket) => {
     // });
 
     // private messages
-    socket.on("private-message", ({ receiverId, message }) => {
+    socket.on("private-message", ({ receiverId, message, created_at }) => {
         const senderId = socket.id;
         console.log(
             `Sending private message from ${userId} to ${receiverId}: ${message}`
         );
-
         // Check if the receiver is online
         if (users[receiverId]) {
             io.to(users[receiverId]).emit("private-message", {
-                receiver_id:receiverId,
+                receiver_id: receiverId,
+                sender_id: userId,
                 message,
+                created_at,
             });
             // io.to(senderId).emit("private-message", {
             //     senderId,

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('otp');
             $table->string('google_id')->nullable();
             $table->string('apple_id')->nullable();
+            $table->string('stripe_account_id')->nullable();
             $table->double('latitude')->nullable();
             $table->double('longitude')->nullable();
             $table->timestamp('email_verified_at')->nullable();

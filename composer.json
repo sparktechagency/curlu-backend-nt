@@ -12,7 +12,7 @@
         "laravel/tinker": "^2.8",
         "munafio/chatify": "^1.6",
         "php-open-source-saver/jwt-auth": "^2.3",
-        "stripe/stripe-php": "^16.2",
+        "stripe/stripe-php": "^16.5",
         "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {

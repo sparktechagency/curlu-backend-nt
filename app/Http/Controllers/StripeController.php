@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Salon;
@@ -7,62 +6,56 @@ use App\Models\SalonService;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Stripe\Account;
+use Stripe\AccountLink;
+use Stripe\Stripe;
 use Stripe\StripeClient;
 
 class StripeController extends Controller
 {
-    public function connectAccount(Request $request)
+    public function createStripeConnectedAccount(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
         ]);
-
-        $stripe = new StripeClient(config('stripe.stripe_sk'));
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()], 400);
+        }
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-
-        $salon = Salon::where('user_id', $user->id)->first();
-        if (!$salon) {
-            return response()->json(['error' => 'Salon not found'], 404);
-        }
-        if ($salon->stripe_account_id) {
-            return response()->json([
-                'message' => 'Stripe account already exists',
-                'account_id' => $salon->stripe_account_id,
-            ]);
-        }
+        Stripe::setApiKey(env('STRIPE_SECRET'));
         try {
-            $account = $stripe->accounts->create([
-                'type' => 'express',
-                'country' => 'US',
-                // 'email' => $request->email,
+            $account = Account::create([
+                'type'         => 'express',
+                'country'      => 'US',
+                'email'        => $user->email,
+                'capabilities' => [
+                    'card_payments' => ['requested' => true],
+                    'transfers'     => ['requested' => true],
+                ],
+            ]);
+            $customReturnUrl = url("/connected?status=success&email={$user->email}&account_id={$account->id}");
+            $accountLink     = AccountLink::create([
+                'account'     => $account->id,
+                'refresh_url' => url('/vendor/reauth'),
+                'return_url'  => $customReturnUrl,
+                'type'        => 'account_onboarding',
             ]);
 
-            $salon->stripe_account_id = $account->id;
-            $salon->save();
-
-            $onboardingLink = $this->getOnboardingLink($account->id);
-
             return response()->json([
-                'account_id' => $account->id,
-                'onboarding_link' => $onboardingLink,
+                'message'        => 'Stripe Connect account created successfully',
+                'onboarding_url' => $accountLink->url,
             ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Stripe account creation failed',
-                'message' => $e->getMessage(),
-            ], 500);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-
     public function createCheckoutSession(Request $request)
     {
-        $stripe = new StripeClient(config('stripe.stripe_sk'));
+        $stripe               = new StripeClient(config('stripe.stripe_sk'));
         $destinationAccountId = SalonService::where('salon_id', $request->salon_id)->first()->stripe_account_id;
 
         try {
@@ -85,27 +78,27 @@ class StripeController extends Controller
         try {
             $checkoutSession = $stripe->checkout->sessions->create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
+                'line_items'           => [[
                     'price_data' => [
-                        'currency' => 'usd',
+                        'currency'     => 'usd',
                         'product_data' => [
                             'name' => $request->service_name,
                         ],
-                        'unit_amount' => $request->price * 100,
+                        'unit_amount'  => $request->price * 100,
                     ],
-                    'quantity' => $request->quantity,
+                    'quantity'   => $request->quantity,
                 ]],
-                'mode' => 'payment',
-                'payment_intent_data' => [
+                'mode'                 => 'payment',
+                'payment_intent_data'  => [
                     'application_fee_amount' => 1000,
-                    'transfer_data' => [
-                        'amount' => 100,
-                        'currency' => 'usd',
+                    'transfer_data'          => [
+                        'amount'      => 100,
+                        'currency'    => 'usd',
                         'destination' => $destinationAccountId,
                     ],
                 ],
-                'success_url' => url('/success'),
-                'cancel_url' => url('/cancel'),
+                'success_url'          => url('/success'),
+                'cancel_url'           => url('/cancel'),
             ]);
 
             return response()->json(['url' => $checkoutSession->url]);
@@ -119,7 +112,7 @@ class StripeController extends Controller
     public function success(Request $request)
     {
         if ($request->has('session_id')) {
-            $stripe = new StripeClient(config('stripe.stripe_sk'));
+            $stripe   = new StripeClient(config('stripe.stripe_sk'));
             $response = $stripe->checkout->sessions->retrieve($request->session_id);
 
             // // Save payment details
@@ -154,7 +147,6 @@ class StripeController extends Controller
     // =====================================================================================================================
     // =====================================================================================================================
 
-
     public function createConnectedAccount(Request $request)
     {
         $request->validate([
@@ -163,30 +155,30 @@ class StripeController extends Controller
         $stripe = new StripeClient(config('stripe.stripe_sk'));
 
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
         $salon = Salon::where('user_id', $user->id)->first();
-        if (!$salon) {
+        if (! $salon) {
             return response()->json(['error' => 'Salon not found'], 404);
         }
         if ($salon->stripe_account_id) {
             return response()->json([
-                'message' => 'Stripe account already exists',
+                'message'    => 'Stripe account already exists',
                 'account_id' => $salon->stripe_account_id,
             ]);
         }
-        try{
+        try {
             $account = $stripe->accounts->create([
-                'country' => 'US',
-                'email' => $request->email,
+                'country'      => 'US',
+                'email'        => $request->email,
                 'capabilities' => [
                     'transfers' => ['requested' => true],
                 ],
-                'controller' => [
-                    'fees' => ['payer' => 'application'],
-                    'losses' => ['payments' => 'application'],
+                'controller'   => [
+                    'fees'             => ['payer' => 'application'],
+                    'losses'           => ['payments' => 'application'],
                     'stripe_dashboard' => ['type' => 'express'],
                 ],
             ]);
@@ -195,18 +187,16 @@ class StripeController extends Controller
             $onboardingLink = $this->create_account_link($account->id);
 
             return response()->json([
-                'account_id' => $account->id,
+                'account_id'      => $account->id,
                 'onboarding_link' => $onboardingLink,
             ]);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
-                'error' => 'Stripe account creation failed',
+                'error'   => 'Stripe account creation failed',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
-
-
 
     public function delete_account($accountNo)
     {
@@ -214,28 +204,25 @@ class StripeController extends Controller
             $stripe = new StripeClient(config('stripe.stripe_sk'));
             $stripe->accounts->delete($accountNo, []);
             return response()->json(['message' => 'Account delete successfully']);
-        } catch (Exception $e) {]
-            Log::error('Delete account error: '.$e->getMessage());
-            return response()->json([   'message'=> 'Account not found'],500);
+        } catch (Exception $e) {
+            Log::error('Delete account error: ' . $e->getMessage());
+            return response()->json(['message' => 'Account not found'], 500);
         }
     }
-
 
     public function create_account_link($accountId)
     {
         $stripe = new StripeClient(config('stripe.stripe_sk'));
 
         $accountLink = $stripe->accountLinks->create([
-            'account' => $accountId,
+            'account'     => $accountId,
             'refresh_url' => url('/dashboard'),
-            'return_url' => url('/dashboard'),
-            'type' => 'account_onboarding',
+            'return_url'  => url('/dashboard'),
+            'type'        => 'account_onboarding',
         ]);
 
         return response()->json(['url' => $accountLink->url]);
     }
-
-
 }
 
 // public function createPayment(Request $request)
