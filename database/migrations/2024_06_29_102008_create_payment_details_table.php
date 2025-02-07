@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('email');
             $table->double('amount')->default(0);
             $table->text('description');
-            $table->date("due_date")->default(null);
+            $table->date("due_date")->default(value: null);
             $table->string('invoice_number')->unique();
             $table->boolean('paid')->default(false);
             $table->string('link');

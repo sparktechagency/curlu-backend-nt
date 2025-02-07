@@ -114,6 +114,7 @@ class SalonController extends Controller
 
     public function salon_invoice(Request $request)
     {
+        
         $orders = Order::with('user', 'salon', 'service');
 
         if ($request->has('search') && $request->search) {

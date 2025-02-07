@@ -213,6 +213,10 @@ Route::middleware(['user', 'auth:api'])->group(function () {
 
     Route::post('schedule', [ManageSchedulController::class, 'schedule']);
     Route::get('next-appointment', [AppointmentController::class, 'nextAppointment']);
+
+    // buy services
+    Route::post('buy-service-intent', [StripeController::class, 'buyServiceIntent']);
+    Route::post('buy-service-success', [StripeController::class, 'buyServiceSuccess']);
 });
 
 Route::resource('/sliders', SliderController::class)->only('index');
