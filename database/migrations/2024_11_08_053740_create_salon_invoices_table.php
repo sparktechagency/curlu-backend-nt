@@ -22,12 +22,15 @@ return new class extends Migration
             $table->double('curlu_earning');
             $table->double('salon_earning');
             $table->enum('status',['Upcoming','Past'])->default('Upcoming');
+            $table->string('schedule_date');
+            $table->string('schedule_time');
+            $table->string('invoice_number');
             $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations. 
+     * Reverse the migrations.
      */
     public function down(): void
     {

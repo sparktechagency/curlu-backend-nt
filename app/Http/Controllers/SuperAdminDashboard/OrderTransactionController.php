@@ -76,7 +76,6 @@ class OrderTransactionController extends Controller
         $orders = $orders->paginate($request->per_page ?? 10);
 
         $orders->getCollection()->transform(function ($order) {
-            $status=$order->schedule_date>=now()?'Upcoming':'Past';
             return [
                 'id' => $order->id,
                 'user' => [
@@ -97,7 +96,7 @@ class OrderTransactionController extends Controller
                     'name' => $order->service->service_name,
                     'price' => $order->amount,
                 ],
-                'status' => $status,
+                'status' => $order->status,
                 'invoice_number' => $order->invoice_number,
                 'booking_date' => $order->created_at,
                 'confirmation_date' => $order->completed_at,

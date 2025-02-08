@@ -163,11 +163,14 @@ class StripeController extends Controller
             'salon_id'                => $request->salon_id,
             'payment_detail_id'       => $payment_detail->id,
             'service_id'              => $request->service_id,
+            'invoice_number' => $invoice_number,
             'order_confirmation_date' => now(),
             'payment'                 => $price,
             'curlu_earning'           => $curlu_earning,
             'salon_earning'           => $salon_earning,
             'status'                  => 'Upcoming',
+            'schedule_date'  => $request->schedule_date,
+            'schedule_time'  => $request->schedule_time,
         ]);
         return response()->json([
             'status'  => true,
