@@ -14,6 +14,7 @@ class ReviewController extends Controller
         $validator = Validator::make($request->all(), [
             'salon_id' => 'required',
             'service_id' => 'required',
+            'order_id' => 'required',
             'rating' => 'required',
             'comment' => 'required',
         ]);
@@ -26,6 +27,7 @@ class ReviewController extends Controller
             'user_id' => Auth::user()->id,
             'salon_id' => $request->salon_id,
             'service_id' => $request->service_id,
+            'salon_invoice_id' => $request->order_id,
             'rating' => $request->rating,
             'comment' => $request->comment,
         ]);

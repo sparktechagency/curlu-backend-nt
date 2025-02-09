@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->comment('people who give the review');
             $table->foreignId('salon_id')->constrained('users')->cascadeOnDelete()->comment('salon who get the review');
             $table->foreignId('service_id')->constrained('salon_services')->cascadeOnDelete();
+            $table->foreignId('salon_invoice_id')->nullable()->constrained('salon_invoices')->cascadeOnDelete();
             $table->unsignedBigInteger('rating')->nullable();
             $table->string('comment')->nullable();
             $table->timestamps();
