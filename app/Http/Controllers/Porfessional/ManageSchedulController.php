@@ -39,14 +39,21 @@ class ManageSchedulController extends Controller
 
     public function storeSchedule(Request $request)
     {
-        // return $request;
+
         $validated = Validator::make($request->all(), [
-            'schedule' => 'required|json',
-            'capacity' => 'required|integer',
+            'schedule'    => 'required|json',
+            'capacity'    => 'required|integer',
         ]);
+
         if ($validated->fails()) {
-            return response()->json(['message' => 'Validation failed', 'errors' => $validated->errors()]);
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validation failed',
+                'errors'  => $validated->errors(),
+            ], 422);
         }
+        return 'ok';
+
         $salon_id     = auth()->user()->id;
         $scheduleTime = SalonScheduleTime::where('salon_id', $salon_id)->first();
         if ($scheduleTime) {
@@ -109,6 +116,7 @@ class ManageSchedulController extends Controller
 
     public function upcomingBooking(Request $request)
     {
+        // return Auth::user();
 
         $date = $request->date ?? now()->toDateString();
 

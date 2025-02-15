@@ -45,7 +45,7 @@ class OrderHistory extends Controller
 
     public function qrScan($id)
     {
-        $salon_invoice         = SalonInvoice::where('invoice_number', $id)->first();
+        $salon_invoice         = SalonInvoice::with('user')->where('invoice_number', $id)->first();
         $salon_invoice->status = 'Past';
         $salon_invoice->save();
         return response()->json([

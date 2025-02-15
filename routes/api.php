@@ -212,6 +212,7 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::post('review', [ReviewController::class, 'store']);
 
     Route::post('order-request', [OrderController::class, 'orderRequest']);
+    Route::post('order-reschedule/{id}', [OrderController::class, 'orderReschedule']);
     Route::get('order-history', [OrderController::class, 'orderHistory']);
     Route::get('service-details/{id}', [BSalonServiceController::class, 'serviceDetails']);
 
@@ -221,6 +222,7 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     // buy services
     Route::post('buy-service-intent', [StripeController::class, 'buyServiceIntent']);
     Route::post('buy-service-success', [StripeController::class, 'buyServiceSuccess']);
+    Route::post('generate-payment-link', [StripeController::class, 'generatePaymentLink']);
 });
 
 Route::resource('/sliders', SliderController::class)->only('index');

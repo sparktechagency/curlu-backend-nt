@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Stripe\Account;
 use Stripe\AccountLink;
+use Stripe\Checkout\Session;
 use Stripe\PaymentIntent;
+use Stripe\Price;
 use Stripe\Stripe;
 
 class StripeController extends Controller
@@ -163,19 +165,98 @@ class StripeController extends Controller
             'salon_id'                => $request->salon_id,
             'payment_detail_id'       => $payment_detail->id,
             'service_id'              => $request->service_id,
-            'invoice_number' => $invoice_number,
+            'invoice_number'          => $invoice_number,
             'order_confirmation_date' => now(),
             'payment'                 => $price,
             'curlu_earning'           => $curlu_earning,
             'salon_earning'           => $salon_earning,
             'status'                  => 'Upcoming',
-            'schedule_date'  => $request->schedule_date,
-            'schedule_time'  => $request->schedule_time,
+            'schedule_date'           => $request->schedule_date,
+            'schedule_time'           => $request->schedule_time,
         ]);
         return response()->json([
             'status'  => true,
             'message' => 'Data store successfully.',
             'data'    => $order,
         ]);
+    }
+
+    public function generatePaymentLink(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'service_id' => 'required|numeric',
+            'price'      => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()], 400);
+        }
+
+        $price                 = $request->price;
+        $totalAmount           = (int) ($price * 100);
+        $platformFeePercentage = 3; // 3% platform fee
+        $platformFee           = (int) (($totalAmount * $platformFeePercentage) / 100);
+
+        $service = SalonService::find($request->service_id);
+        if (! $service) {
+            return response()->json(['status' => false, 'message' => 'Service not found.'], 404);
+        }
+
+        $salon = Salon::find($service->salon_id);
+        if (! $salon) {
+            return response()->json(['status' => false, 'message' => 'Salon not found.'], 404);
+        }
+
+        $professional = User::find($salon->user_id);
+        if (! $professional || ! $professional->stripe_account_id) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'This professional does not have a Stripe account.',
+            ], 400);
+        }
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            $session = Session::create([
+                'payment_method_types' => ['card'],
+                'line_items'           => [[
+                    'price_data' => [
+                        'currency'     => 'usd',
+                        'product_data' => [
+                            'name' => $service->service_name,
+                        ],
+                        'unit_amount'  => $totalAmount,
+                    ],
+                    'quantity'   => 1,
+                ]],
+                'mode'                 => 'payment',
+                'payment_intent_data'  => [
+                    'application_fee_amount' => $platformFee,
+                    'transfer_data'          => [
+                        'destination' => $professional->stripe_account_id,
+                    ],
+                ],
+                // 'success_url'          => url('/payment-success?session_id={CHECKOUT_SESSION_ID}'),
+                'success_url'          => url('/payment-success') . '?session_id={CHECKOUT_SESSION_ID}&user_id=' . Auth::user()->id .
+                '&user_email=' . Auth::user()->email . '&salon_id=' . $request->salon_id .
+                '&service_id=' . $request->service_id . '&price=' . $request->price .
+                '&schedule_date=' . $request->schedule_date . '&schedule_time=' . $request->schedule_time,
+
+                'cancel_url'           => url('/payment-failed'),
+            ]);
+            if (isset($session->id) && $session->id != '') {
+                return response()->json([
+                    'status'       => true,
+                    'payment_link' => $session->url,
+                ]);
+            } else {
+                return response()->json([
+                    'status'       => false,
+                    'payment_link' => null,
+                ]);
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }

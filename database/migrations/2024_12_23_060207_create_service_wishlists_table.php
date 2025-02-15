@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('service_wishlists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_id')->nullable()->constrained('salon_services');
+            $table->foreignId('service_id')->nullable()->constrained('salon_services')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users');
             $table->timestamps();
         });

@@ -1,10 +1,15 @@
 <?php
 namespace App\Http\Controllers\Barbar;
 
-use App\Http\Controllers\Controller;
+use Exception;
+use App\Models\User;
 use App\Models\Salon;
+use App\Models\Review;
 use App\Models\SalonService;
 use Illuminate\Http\Request;
+use App\Models\SalonScheduleTime;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class BSalonServiceController extends Controller
@@ -185,7 +190,18 @@ class BSalonServiceController extends Controller
 
     public function destroy(string $id)
     {
-        //
+        try {
+            $service = SalonService::findOrFail($id);
+            DB::table('service_wishlists')->where('service_id', $id)->delete();
+            $service->delete();
+            return response()->json([
+                'status'  => true,
+                'message' => 'Service delete successfully.',
+                'data'    => $service,
+            ]);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     public function serviceStatus(Request $request, $id)
@@ -202,18 +218,49 @@ class BSalonServiceController extends Controller
     }
     public function salonwiseService(Request $request)
     {
-        $services = SalonService::query();
+        // $services = SalonService::query();
 
-        if ($request->category_id) {
-            $services = $services->where('category_id', $request->category_id);
+        // if ($request->category_id) {
+        //     $services = $services->where('category_id', $request->category_id);
+        // }
+        // $services = $services->paginate();
+        // return response()->json(['data' => $services]);
+        $per_page = $request->per_page;
+        $salons   = User::where('role_type', 'PROFESSIONAL');
+        if ($request->search) {
+            $salons = $salons->where('name', 'LIKE', '%' . $request->search . '%')->orWhere('last_name', 'LIKE', '%' . $request->search . '%');
         }
-        $services = $services->paginate();
-        return response()->json(['data' => $services]);
+        $salons = $salons->paginate($per_page ?? 10);
+        $salons->getCollection()->transform(function ($salon) {
+            $salonScheduleTime = SalonScheduleTime::where('salon_id', $salon->id)->first();
+            if ($salonScheduleTime) {
+                $salonScheduleTime->schedule     = json_decode($salonScheduleTime->schedule, true);
+                $salonScheduleTime->booking_time = json_decode($salonScheduleTime->booking_time, true);
+            }
+            $ratingSum   = Review::where('salon_id', $salon->id)->sum('rating');
+            $ratingCount = Review::where('salon_id', $salon->id)->count();
+
+            $rating = $ratingCount > 0 ? round(min($ratingSum / $ratingCount, 5), 1) : 0;
+            return [
+                'id'        => $salon->id,
+                'name'      => $salon->name,
+                'last_name' => $salon->last_name,
+                'image'     => $salon->image,
+                'address'   => $salon->address,
+                'rating'    => $rating,
+                'schedule'  => $salonScheduleTime,
+            ];
+        });
+        return response()->json([
+            'status'  => true,
+            'message' => 'salon retrieve successfully',
+            'data'    => $salons,
+        ]);
     }
 
     public function serviceDetails($id)
     {
-        $service = SalonService::with('salon','salon.user')->findOrFail($id);
+        $service = SalonService::with('salon', 'salon.user')->findOrFail($id);
         return response()->json(['data' => $service]);
     }
 }

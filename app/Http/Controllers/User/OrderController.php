@@ -1,12 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\User;
 
-use Carbon\Carbon;
-use App\Models\Order;
-use App\Models\SalonService;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\SalonInvoice;
+use App\Models\SalonService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
@@ -18,17 +18,17 @@ class OrderController extends Controller
 
         $orders->transform(function ($order) {
             return [
-                'order_id' => $order->id,
-                'user_id' => $order->user_id,
-                'salon_id' => $order->service->salon->id,
-                'salon_name' => $order->service->salon->user->name . ' ' . $order->service->salon->user->last_name,
+                'order_id'     => $order->id,
+                'user_id'      => $order->user_id,
+                'salon_id'     => $order->service->salon->id,
+                'salon_name'   => $order->service->salon->user->name . ' ' . $order->service->salon->user->last_name,
                 'order_number' => $order->order_number,
                 'total_amount' => $order->total_amount,
-                'status' => $order->status,
+                'status'       => $order->status,
                 'booking_time' => Carbon::parse($order->completed_at)->format('d M, Y - h:i a'),
-                'services' => [
-                    'service_id' => $order->service->id,
-                    'service_name' => $order->service->service_name,
+                'services'     => [
+                    'service_id'    => $order->service->id,
+                    'service_name'  => $order->service->service_name,
                     'service_image' => $order->service->image,
                 ],
 
@@ -40,8 +40,6 @@ class OrderController extends Controller
         return response()->json(['message' => 'Success', 'orders' => $orders]);
     }
 
-
-
     /**
      * Place an order for a service.
      */
@@ -50,21 +48,21 @@ class OrderController extends Controller
         // dd($request->all());
 
         try {
-            if (!empty($serviceId)) {
+            if (! empty($serviceId)) {
 
                 $previousOrder = Order::where('user_id', auth()->id())->where('service_id', $serviceId)->where('status', 'pending')->get();
                 if (count($previousOrder) > 0) {
                     return response()->json(['message' => 'You already have a pending order for this service']);
                 }
-                $service = SalonService::find($serviceId);
-                $order = new Order();
-                $order->user_id = auth()->id();
-                $order->salon_id = $service->salon_id;
-                $order->service_id = $service->id;
+                $service             = SalonService::find($serviceId);
+                $order               = new Order();
+                $order->user_id      = auth()->id();
+                $order->salon_id     = $service->salon_id;
+                $order->service_id   = $service->id;
                 $order->order_number = 'ORD-' . strtoupper(uniqid());
-                $lastOrder = Order::orderBy('created_at', 'desc')->first();
+                $lastOrder           = Order::orderBy('created_at', 'desc')->first();
                 if ($lastOrder) {
-                    $lastOrderNumber = intval(substr($lastOrder->order_number, 4));
+                    $lastOrderNumber     = intval(substr($lastOrder->order_number, 4));
                     $order->order_number = 'ORD-' . strtoupper(str_pad($lastOrderNumber + 1, 8, '0', STR_PAD_LEFT));
                 } else {
                     $order->order_number = 'ORD-00000001';
@@ -83,7 +81,6 @@ class OrderController extends Controller
             return response()->json(['message' => 'Failed to place order', 'error_code' => $e->getCode()]);
         }
     }
-
 
     public function cancelOrder($id)
     {
@@ -113,21 +110,22 @@ class OrderController extends Controller
         return response()->json(['message' => 'Success', 'orderTotalAmount' => $orderTotalAmount]);
     }
 
-    public function orderRequest(Request $request){
+    public function orderRequest(Request $request)
+    {
 
-        $curlu_earning=2;
-        $order=Order::create([
-            'user_id'=>Auth::user()->id,
-            'salon_id'=>$request->salon_id ?? NULL,
-            'service_id'=>$request->salon_id ?? NULL,
-            'amount'=>$request->amount,
-            'status'=>$request->status ?? 'pending',
-            'invoice_number'=>$request->invoice_number,
-            'description'=>$request->description,
-            'curlu_earning'=>$curlu_earning,
-            'salon_earning'=>$request->amount-$curlu_earning,
-            'schedule_time'=>$request->schedule_time,
-            'schedule_date'=>$request->schedule_date,
+        $curlu_earning = 2;
+        $order         = Order::create([
+            'user_id'        => Auth::user()->id,
+            'salon_id'       => $request->salon_id ?? null,
+            'service_id'     => $request->salon_id ?? null,
+            'amount'         => $request->amount,
+            'status'         => $request->status ?? 'pending',
+            'invoice_number' => $request->invoice_number,
+            'description'    => $request->description,
+            'curlu_earning'  => $curlu_earning,
+            'salon_earning'  => $request->amount - $curlu_earning,
+            'schedule_time'  => $request->schedule_time,
+            'schedule_date'  => $request->schedule_date,
         ]);
         return response()->json(['message' => 'Success', 'data' => $order]);
     }
@@ -139,33 +137,32 @@ class OrderController extends Controller
                 'user',
                 'service',
                 'service.salon',
-                'service.salon.user'
+                'service.salon.user',
             ])->where('user_id', auth()->id())->latest('id')->paginate($request->per_page ?? 10);
-                   if ($orders->isEmpty()) {
+            if ($orders->isEmpty()) {
                 return response()->json([
                     'message' => 'No orders found.',
-                    'data' => [],
+                    'data'    => [],
                 ], 404);
             }
 
             return response()->json([
                 'message' => 'Orders retrieved successfully.',
-                'data' => $orders,
+                'data'    => $orders,
 
             ], 200);
         }
 
         return response()->json([
             'message' => 'Unauthorized access.',
-            'data' => [],
+            'data'    => [],
         ], 403);
     }
-
 
     public function myEarning()
     {
         $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
+        $endOfWeek   = Carbon::now()->endOfWeek();
 
         $weeklyEarning = Order::where('salon_id', Auth::user()->id)
             ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
@@ -179,25 +176,43 @@ class OrderController extends Controller
 
         $earningDetails = $orders->map(function ($order) {
             return [
-                'user_name' => $order->user->name . ' ' . $order->user->last_name,
+                'user_name'      => $order->user->name . ' ' . $order->user->last_name,
                 'invoice_number' => $order->invoice_number,
-                'schedule_date' => $order->schedule_date,
-                'schedule_time' => \Carbon\Carbon::createFromFormat('H:i:s', $order->schedule_time)->format('h:i a'),
-                'amount' => $order->amount,
+                'schedule_date'  => $order->schedule_date,
+                'schedule_time'  => \Carbon\Carbon::createFromFormat('H:i:s', $order->schedule_time)->format('h:i a'),
+                'amount'         => $order->amount,
             ];
         });
 
         // Prepare response data
         $earning = [
-            'weekly_earning' => $weeklyEarning,
-            'total_earning' => $totalEarning,
+            'weekly_earning'  => $weeklyEarning,
+            'total_earning'   => $totalEarning,
             'earning_details' => $earningDetails,
         ];
 
         return response()->json([
             'message' => 'Earnings retrieved successfully.',
-            'data' => $earning,
+            'data'    => $earning,
         ], 200);
     }
 
+    public function orderReschedule(Request $request, $id)
+    {
+        $order         = Order::findOrFail($id);
+        $salon_invoice = SalonInvoice::findOrFail($id);
+        $order->update([
+            'schedule_date' => $request->schedule_date,
+            'schedule_time' => $request->schedule_time,
+        ]);
+        $salon_invoice->update([
+            'schedule_date' => $request->schedule_date,
+            'schedule_time' => $request->schedule_time,
+        ]);
+        return response()->json([
+            'status'=>true,
+            'message'=>'Reshedule successfully complete',
+            'data'=>$order,
+        ]);
+    }
 }
