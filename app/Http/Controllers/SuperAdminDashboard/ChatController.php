@@ -38,8 +38,15 @@ class ChatController extends Controller
     public function getMessage(Request $request)
     {
         $per_page=$request->per_page;
-        $messages = Message::where('sender_id', Auth::user()->id)->where('receiver_id', $request->receiver_id)
-            ->paginate($per_page ?? 10);
+        $messages = Message::where(function ($query) use ($request) {
+            $query->where('sender_id', Auth::user()->id)
+                  ->where('receiver_id', $request->receiver_id);
+        })
+        ->orWhere(function ($query) use ($request) {
+            $query->where('sender_id', $request->receiver_id)
+                  ->where('receiver_id', Auth::user()->id);
+        })
+        ->paginate($per_page);
         return response()->json($messages);
     }
 

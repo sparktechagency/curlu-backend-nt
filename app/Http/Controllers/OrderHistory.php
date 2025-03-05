@@ -1,11 +1,14 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\Review;
+use App\Models\User;
 use App\Models\Salon;
+use App\Models\Review;
 use App\Models\SalonInvoice;
+use App\Models\SalonService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\OrderConfirmNotification;
 
 class OrderHistory extends Controller
 {
@@ -48,6 +51,19 @@ class OrderHistory extends Controller
         $salon_invoice         = SalonInvoice::with('user')->where('invoice_number', $id)->first();
         $salon_invoice->status = 'Past';
         $salon_invoice->save();
+
+        $salon=Salon::findOrFail($salon_invoice->salon_id);
+        $service_name      = SalonService::where('id', $salon_invoice->service_id)->first();
+        $salon_details=User::find($salon->user_id);
+        $notification_data = [
+            'service_name' => $service_name->service_name,
+            'salon_name'   => $salon_details->name . ' ' . $salon_details->last_name,
+        ];
+        $user = User::findOrFail($salon_invoice->user_id);
+        if ($user) {
+            $user->notify(new OrderConfirmNotification($notification_data));
+        }
+
         return response()->json([
             'status'  => true,
             'message' => 'Data retrieve successfully.',

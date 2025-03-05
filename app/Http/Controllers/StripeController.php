@@ -7,6 +7,7 @@ use App\Models\Salon;
 use App\Models\SalonInvoice;
 use App\Models\SalonService;
 use App\Models\User;
+use App\Notifications\NewOrder;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -174,6 +175,15 @@ class StripeController extends Controller
             'schedule_date'           => $request->schedule_date,
             'schedule_time'           => $request->schedule_time,
         ]);
+        $notification_data = [
+            'buyer_name' => Auth::user()->name . ' ' . Auth::user()->last_name,
+            'address'    => Auth::user()->address,
+        ];
+        $salon_id     = Salon::where('id', $request->salon_id)->pluck('user_id')->first();
+        $professional = User::find($salon_id);
+        if ($professional) {
+            $professional->notify(new NewOrder($notification_data));
+        }
         return response()->json([
             'status'  => true,
             'message' => 'Data store successfully.',

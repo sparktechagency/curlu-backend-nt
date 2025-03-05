@@ -2,8 +2,11 @@
 
 use App\Models\Order;
 use App\Models\PaymentDetail;
+use App\Models\Salon;
 use App\Models\SalonInvoice;
+use App\Models\SalonService;
 use App\Models\User;
+use App\Notifications\OtherPaidNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -94,11 +97,17 @@ Route::get('/payment-success', function (Request $request) {
                 'schedule_date'           => $schedule_date,
                 'schedule_time'           => $schedule_time,
             ]);
-            // return response()->json([
-            //     'status'  => true,
-            //     'message' => 'Data store successfully.',
-            //     'data'    => $order,
-            // ]);
+            $service_name      = SalonService::where('id', $service_id)->first();
+            $salon             = Salon::where('id', $salon_id)->first();
+            $salon_name        = User::where('id', $salon->user_id)->first();
+            $notification_data = [
+                'service_name' => $service_name->service_name,
+                'salon_name'   => $salon_name->name . ' ' . $salon_name->last_name,
+            ];
+            $user = User::findOrFail($user_id);
+            if ($user) {
+                $user->notify(new OtherPaidNotification($notification_data));
+            }
             return view('success');
         } else {
             return view('error');

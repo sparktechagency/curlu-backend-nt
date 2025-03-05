@@ -1,37 +1,37 @@
 <?php
 
+use App\Http\Controllers\AboutUsController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Barbar\BSalonServiceController;
+use App\Http\Controllers\Barbar\HomeController;
+use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\OrderHistory;
+use App\Http\Controllers\Porfessional\ManageSchedulController;
+use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\SuperAdminDashboard\ChatController;
+use App\Http\Controllers\SuperAdminDashboard\DashboardController;
+use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
+use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
+use App\Http\Controllers\SuperAdminDashboard\FaqController;
+use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
+use App\Http\Controllers\SuperAdminDashboard\ManageHaircutOfferController;
+use App\Http\Controllers\SuperAdminDashboard\NotificationController;
+use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
+use App\Http\Controllers\SuperAdminDashboard\SalonController;
+use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
+use App\Http\Controllers\SuperAdminDashboard\UserController;
+use App\Http\Controllers\TermsConditionController;
+use App\Http\Controllers\USalonController;
+use App\Http\Controllers\User\OrderController;
+use App\Http\Controllers\User\UserServiceController;
+use App\Http\Controllers\User\WishlistController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderHistory;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\StripeController;
-use App\Http\Controllers\USalonController;
-use App\Http\Controllers\AboutUsController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\User\OrderController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\Barbar\HomeController;
-use App\Http\Controllers\PrivacyPolicyController;
-use App\Http\Controllers\User\WishlistController;
-use App\Http\Controllers\TermsConditionController;
-use App\Http\Controllers\User\UserServiceController;
-use App\Http\Controllers\Category\RCategoryController;
-use App\Http\Controllers\Barbar\BSalonServiceController;
-use App\Http\Controllers\SuperAdminDashboard\FaqController;
-use App\Http\Controllers\SuperAdminDashboard\ChatController;
-use App\Http\Controllers\SuperAdminDashboard\UserController;
-use App\Http\Controllers\SuperAdminDashboard\SalonController;
-use App\Http\Controllers\Porfessional\ManageSchedulController;
-use App\Http\Controllers\SuperAdminDashboard\DashboardController;
-use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
-use App\Http\Controllers\SuperAdminDashboard\NotificationController;
-use App\Http\Controllers\SuperAdminDashboard\Eshop\ProductController;
-use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
-use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
-use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
-use App\Http\Controllers\SuperAdminDashboard\ManageHaircutOfferController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -88,11 +88,6 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
     // salon invoice api
     Route::get('/salon_invoice', [SalonController::class, 'salon_invoice']);
 
-    // notification
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notification/markread/{id}', [NotificationController::class, 'markRead']);
-    Route::post('mark-all-notification', [NotificationController::class, 'allMark'])->name('allMark');
-
     // feedback api
     Route::get('/feedback', [FeedbackController::class, 'index']);
     // order_transaction api
@@ -123,7 +118,7 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
     Route::get('review', [ReviewController::class, 'index']);
 
     Route::get('earning', [OrderController::class, 'myEarning']);
-    Route::get('qr-scan/{invoice_number}',[OrderHistory::class,'qrScan']);
+    Route::get('qr-scan/{invoice_number}', [OrderHistory::class, 'qrScan']);
 
 });
 
@@ -171,8 +166,13 @@ Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
     Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
 
     Route::post('create-connected-account', [StripeController::class, 'createStripeConnectedAccount']);
-    Route::get('qr-order-history',[OrderHistory::class,'orderHistory']);
-    Route::get('qr-order-history-single/{id}',[OrderHistory::class,'orderHistorysingle']);
+    Route::get('qr-order-history', [OrderHistory::class, 'orderHistory']);
+    Route::get('qr-order-history-single/{id}', [OrderHistory::class, 'orderHistorysingle']);
+
+    // notification
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notification/markread/{id}', [NotificationController::class, 'markRead']);
+    Route::post('mark-all-notification', [NotificationController::class, 'allMark'])->name('allMark');
 });
 
 //USER role route
