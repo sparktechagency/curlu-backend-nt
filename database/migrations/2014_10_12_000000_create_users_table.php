@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('role_type');
             $table->string('gender')->nullable();
             $table->string('user_status')->default('active');
-            $table->string('otp');
+            $table->string('otp')->nullable();
             $table->string('google_id')->nullable();
             $table->string('apple_id')->nullable();
             $table->string('stripe_account_id')->nullable();

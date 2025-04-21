@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -34,7 +34,7 @@ class AuthController extends Controller
         if ($user) {
             $random = Str::random(6);
             Mail::to($request->email)->send(new OtpMail($random));
-            $user->otp = $random;
+            $user->otp               = $random;
             $user->email_verified_at = now();
             $user->save();
 
@@ -42,19 +42,19 @@ class AuthController extends Controller
         } else {
             if ($request->role_type == 'USER' || $request->role_type == 'ADMIN' || $request->role_type == 'SUPER ADMIN') {
 
-                $user = new User();
-                $user->name = $request->name;
-                $user->last_name = $request->last_name;
-                $user->email = $request->email;
-                $user->password = Hash::make($request->password);
-                $user->address = $request->address;
-                $user->phone = $request->phone;
-                $user->role_type = $request->role_type;
-                $user->latitude = $request->latitude;
-                $user->longitude = $request->longitude;
+                $user                = new User();
+                $user->name          = $request->name;
+                $user->last_name     = $request->last_name;
+                $user->email         = $request->email;
+                $user->password      = Hash::make($request->password);
+                $user->address       = $request->address;
+                $user->phone         = $request->phone;
+                $user->role_type     = $request->role_type;
+                $user->latitude      = $request->latitude;
+                $user->longitude     = $request->longitude;
                 $user->date_of_birth = $request->date_of_birth;
-                $user->gender = $request->gender;
-                $user->otp = Str::random(6);
+                $user->gender        = $request->gender;
+                $user->otp           = Str::random(6);
                 if ($request->file('image')) {
                     $user->image = saveImage($request, 'image');
                 }
@@ -70,33 +70,33 @@ class AuthController extends Controller
                 DB::beginTransaction();
 
                 try {
-                    $user = new User();
-                    $user->name = $request->name;
-                    $user->last_name = $request->last_name;
-                    $user->email = $request->email;
-                    $user->password = Hash::make($request->password);
-                    $user->address = $request->address;
-                    $user->phone = $request->phone;
+                    $user                = new User();
+                    $user->name          = $request->name;
+                    $user->last_name     = $request->last_name;
+                    $user->email         = $request->email;
+                    $user->password      = Hash::make($request->password);
+                    $user->address       = $request->address;
+                    $user->phone         = $request->phone;
                     $user->date_of_birth = $request->date_of_birth;
-                    $user->gender = $request->gender;
-                    $user->latitude = $request->latitude;
-                    $user->longitude = $request->longitude;
-                    $user->role_type = $request->role_type;
-                    $user->otp = Str::random(6);
+                    $user->gender        = $request->gender;
+                    $user->latitude      = $request->latitude;
+                    $user->longitude     = $request->longitude;
+                    $user->role_type     = $request->role_type;
+                    $user->otp           = Str::random(6);
                     if ($request->file('image')) {
                         $user->image = saveImage($request, 'image');
                     }
                     $user->save();
 
-                    $salon = new Salon();
-                    $salon->user_id = $user->id;
-                    $salon->experience = $request->experience;
-                    $salon->salon_type = $request->salon_type;
+                    $salon                    = new Salon();
+                    $salon->user_id           = $user->id;
+                    $salon->experience        = $request->experience;
+                    $salon->salon_type        = $request->salon_type;
                     $salon->salon_description = $request->salon_description;
                     if ($request->file('id_card')) {
                         $salon->id_card = saveImage($request, 'id_card');
                     }
-                    $salon->kbis = $request->kbis;
+                    $salon->kbis        = $request->kbis;
                     $salon->iban_number = $request->iban_number;
                     if ($request->file('cover-image')) {
                         $salon->cover_image = saveImage($request, 'cover-image');
@@ -123,7 +123,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
+            'email'    => 'required|string|email',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
@@ -163,18 +163,18 @@ class AuthController extends Controller
 
         $user = User::where('otp', $request->otp)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response(['message' => 'Invalid'], 422);
         }
 
         $user->email_verified_at = now();
-        $user->otp = 0;
+        $user->otp               = 0;
 //        $user->status = 'active';
         $user->save();
         //$result = app('App\Http\Controllers\NotificationController')->sendNotification('Welcome to the Barbar app', $user->created_at, $user);
         return response([
             'message' => 'Email verified successfully',
-            'token' => $this->respondWithToken($token),
+            'token'   => $this->respondWithToken($token),
         ]);
     }
 
@@ -185,10 +185,10 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             // 'refresh_token' => $refreshToken,
-            'user' => $user,
-            'token_type' => 'bearer',
-            'user' => $user,
-            'expires_in' => auth('api')
+            'user'         => $user,
+            'token_type'   => 'bearer',
+            'user'         => $user,
+            'expires_in'   => auth('api')
                 ->factory()
                 ->getTTL() * 600000000000, // hour*seconds
         ]);
@@ -198,13 +198,13 @@ class AuthController extends Controller
     {
         if ($this->guard()->user()) {
             $user = $this->guard()->user();
-           if ($user->role_type == 'PROFESSIONAL') {
-            $salon = $user->salon;
+            if ($user->role_type == 'PROFESSIONAL') {
+                $salon = $user->salon;
 
-            return response()->json([
-                'user' => $user,
-            ]);
-           }
+                return response()->json([
+                    'user' => $user,
+                ]);
+            }
             return response()->json([
                 'user' => $user,
             ]);
@@ -216,8 +216,8 @@ class AuthController extends Controller
     public function forgetPassword(Request $request)
     {
         $email = $request->email;
-        $user = User::where('email', $email)->first();
-        if (!$user) {
+        $user  = User::where('email', $email)->first();
+        if (! $user) {
             return response()->json(['error' => 'Email not found'], 401);
         } else if ($user->google_id != null || $user->apple_id != null) {
             return response()->json([
@@ -226,7 +226,7 @@ class AuthController extends Controller
         } else {
             $random = Str::random(6);
             Mail::to($request->email)->send(new OtpMail($random));
-            $user->otp = $random;
+            $user->otp               = $random;
             $user->email_verified_at = now();
             $user->save();
             return response()->json(['message' => 'Please check your email for get the OTP']);
@@ -237,7 +237,7 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Your email is not exists',
             ], 401);
@@ -264,15 +264,15 @@ class AuthController extends Controller
         //            ->where('verify_email', 0)
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'User not found or email already verified'], 404);
         }
 
         // Check if OTP resend is allowed (based on time expiration)
-        $currentTime = now();
+        $currentTime  = now();
         $lastResentAt = $user->last_otp_sent_at; // Assuming you have a column in your users table to track the last OTP sent time
 
-        // Define your expiration time (e.g., 5 minutes)
+                             // Define your expiration time (e.g., 5 minutes)
         $expirationTime = 5; // in minutes
 
         if ($lastResentAt && $lastResentAt->addMinutes($expirationTime)->isFuture()) {
@@ -309,14 +309,14 @@ class AuthController extends Controller
             //     'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
             // ]);
 
-            $user->name = $request->name ?? $user->name;
-            $user->last_name = $request->last_name ?? $user->last_name;
-            $user->phone = $request->phone ?? $user->phone;
-            $user->latitude = $request->latitude ?? $user->latitude;
-            $user->longitude = $request->longitude ?? $user->longitude;
-            $user->address = $request->address ?? $user->address;
+            $user->name          = $request->name ?? $user->name;
+            $user->last_name     = $request->last_name ?? $user->last_name;
+            $user->phone         = $request->phone ?? $user->phone;
+            $user->latitude      = $request->latitude ?? $user->latitude;
+            $user->longitude     = $request->longitude ?? $user->longitude;
+            $user->address       = $request->address ?? $user->address;
             $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
-            $user->gender = $request->gender ?? $user->gender;
+            $user->gender        = $request->gender ?? $user->gender;
             if ($request->file('image')) {
                 $user->image = saveImage($request, 'image');
             }
@@ -325,7 +325,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Profile updated successfully!',
-                'user' => $user,
+                'user'    => $user,
             ], 200);
 
         } elseif ($user->role_type == 'PROFESSIONAL') {
@@ -353,16 +353,16 @@ class AuthController extends Controller
                 // ]);
 
                 // Update user basic details
-                $user->name = $request->name;
+                $user->name      = $request->name;
                 $user->last_name = $request->last_name ?? $user->last_name;
-                $user->email = $request->email ?? $user->email;
+                $user->email     = $request->email ?? $user->email;
                 if ($request->password) {
                     $user->password = Hash::make($request->password);
                 }
-                $user->phone = $request->phone ?? $user->phone;
-                $user->address = $request->address ?? $user->address;
+                $user->phone         = $request->phone ?? $user->phone;
+                $user->address       = $request->address ?? $user->address;
                 $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
-                $user->gender = $request->gender ?? $user->gender;
+                $user->gender        = $request->gender ?? $user->gender;
 
                 if ($request->file('image')) {
                     $user->image = saveImage($request, 'image');
@@ -372,23 +372,23 @@ class AuthController extends Controller
                 // Update Professional/Salon details
                 $salon = Salon::where('user_id', $user->id)->first();
 
-                $salon->experience = $request->experience ?? $salon->experience;
-                $salon->salon_type = $request->salon_type ?? $salon->salon_type;
+                $salon->experience        = $request->experience ?? $salon->experience;
+                $salon->salon_type        = $request->salon_type ?? $salon->salon_type;
                 $salon->salon_description = $request->salon_description ?? $salon->salon_description;
                 if ($request->file('id_card')) {
                     $salon->id_card = saveImage($request, 'id_card');
                 }
-                $salon->kbis = $request->kbis ?? $salon->kbis;
+                $salon->kbis        = $request->kbis ?? $salon->kbis;
                 $salon->iban_number = $request->iban_number ?? $salon->iban_number;
                 if ($request->file('cover_image')) {
                     if ($salon->cover_image && file_exists(public_path($salon->cover_image))) {
                         unlink(public_path($salon->cover_image));
                     }
-                    $file = $request->file('cover_image');
-                    $path = 'adminAsset/cover_image';
+                    $file     = $request->file('cover_image');
+                    $path     = 'adminAsset/cover_image';
                     $filename = time() . '.' . $file->getClientOriginalExtension();
                     $file->move(public_path($path), $filename);
-                    $final_path = $path . '/' . $filename;
+                    $final_path         = $path . '/' . $filename;
                     $salon->cover_image = $final_path;
                 }
 
@@ -398,8 +398,8 @@ class AuthController extends Controller
 
                 return response()->json([
                     'message' => 'Profile and salon details updated successfully!',
-                    'user' => $user,
-                    'salon' => $salon,
+                    'user'    => $user,
+                    'salon'   => $salon,
                 ], 200);
 
             } catch (\Exception $e) {
@@ -430,7 +430,7 @@ class AuthController extends Controller
                     return response()->json($validator->errors(), 400);
                 } else {
                     $user->password = Hash::make($request->password);
-                    $user->otp = 0;
+                    $user->otp      = 0;
                     $user->save();
 
                     return response()->json(['message' => 'password reset successfully!'], 200);
@@ -463,14 +463,14 @@ class AuthController extends Controller
         if ($user) {
             $validator = Validator::make($request->all(), [
                 'current_password' => 'required|string',
-                'new_password' => 'required|string|min:6|different:current_password',
+                'new_password'     => 'required|string|min:6|different:current_password',
                 'confirm_password' => 'required|string|same:new_password',
             ]);
 
             if ($validator->fails()) {
                 return response(['errors' => $validator->errors()], 409);
             }
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (! Hash::check($request->current_password, $user->password)) {
                 return response()->json(['message' => 'Your current password is wrong'], 409);
             }
             $user->update(['password' => Hash::make($request->new_password)]);
@@ -489,8 +489,8 @@ class AuthController extends Controller
                 $token = $this->guard()->setToken($refreshToken)->refresh();
                 return response()->json([
                     'access_token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => auth('api')->factory()->getTTL() * 60,
+                    'token_type'   => 'bearer',
+                    'expires_in'   => auth('api')->factory()->getTTL() * 60,
                 ]);
             }
 
@@ -499,5 +499,91 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }
     }
+    public function socialLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|email|max:255',
+            'google_id' => 'string|nullable',
+            'apple_id'  => 'string|nullable',
+            'photo'     => 'image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()], 400);
+        }
+
+        $existingUser = User::where('email', $request->email)->first();
+
+        if ($existingUser) {
+            $socialId = ($request->has('google_id') && $existingUser->google_id === $request->google_id) || ($request->has('apple_id') && $existingUser->apple_id === $request->apple_id);
+
+            if ($socialId) {
+                $token   = JWTAuth::fromUser($existingUser);
+                $success = [
+                    'access_token' => $token,
+                    'token_type'   => 'bearer',
+                    // 'expires_in'   => auth()->factory()->getTTL() * 60,
+                    'user'         => $existingUser,
+                ];
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'User login successfully.',
+                    'data'    => $success,
+                ], 200);
+            } elseif (is_null($existingUser->google_id) && is_null($existingUser->apple_id)) {
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'User already exists. Sign in manually.',
+                ], 200);
+            } else {
+                $existingUser->update([
+                    'google_id' => $request->google_id ?? $existingUser->google_id,
+                    'apple_id'  => $request->apple_id ?? $existingUser->apple_id,
+                ]);
+                $token   = JWTAuth::fromUser($existingUser);
+                $success = [
+                    'access_token' => $token,
+                    'token_type'   => 'bearer',
+                    // 'expires_in'   => auth()->factory()->getTTL() * 60,
+                    'user'         => $existingUser,
+                ];
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'User login successfully.',
+                    'data'    => $success,
+                ], 200);
+            }
+        }
+
+        $user = User::create([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => Hash::make(Str::random(16)),
+            'google_id'         => $request->google_id ?? null,
+            'apple_id'          => $request->apple_id ?? null,
+            'role_type'         => 'USER',
+            'email_verified_at' => now(),
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $image      = $request->file('photo');
+            $final_name = time() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('adminAsset/image/'), $final_name);
+            $user->update([
+                'image' => 'adminAsset/image/' . $final_name,
+            ]);
+        }
+        $token   = JWTAuth::fromUser($user);
+        $success = [
+            'access_token' => $token,
+            'token_type'   => 'bearer',
+            // 'expires_in'   => auth()->factory()->getTTL() * 60,
+            'user'         => $user,
+        ];
+        return response()->json([
+            'status'  => true,
+            'message' => 'User login successfully.',
+            'data'    => $success], 200);
+    }
 }

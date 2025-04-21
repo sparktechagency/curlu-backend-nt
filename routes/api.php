@@ -49,7 +49,7 @@ Route::group([['middleware' => 'auth:api']], function ($router) {
     Route::put('/profile/edit/{id}', [AuthController::class, 'editProfile']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
-
+    Route::post('/social-login', [AuthController::class, 'socialLogin']);
     Route::get('/logout', [AuthController::class, 'logout']);
 });
 
