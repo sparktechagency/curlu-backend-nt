@@ -17,7 +17,7 @@ class WishlistController extends Controller
     public function serviceWishlistIndex(Request $request)
     {
         $userId = Auth::id();
-        $wishlistServiceIds = ServiceWishlist::with('service')->where('user_id', $userId)->get();
+        $wishlistServiceIds = ServiceWishlist::with('service','service.salon.user:id,name,last_name,image')->where('user_id', $userId)->get();
 
         // $services = SalonService::paginate($request->per_page ?? 10);
 

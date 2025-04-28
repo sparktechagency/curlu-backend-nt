@@ -155,7 +155,7 @@ class StripeController extends Controller
             'completed_at'   => now(),
             'curlu_earning'  => $curlu_earning,
             'salon_earning'  => $salon_earning,
-            'status'         => 'completed',
+            'status'         => 'pending',
             'description'    => 'N/A',
             'schedule_date'  => $request->schedule_date,
             'schedule_time'  => $request->schedule_time,

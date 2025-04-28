@@ -187,7 +187,7 @@ class RCategoryController extends Controller
         // Get all service IDs in the user's wishlist
         $wishlistServiceIds = ServiceWishlist::where('user_id', $userId)->pluck('service_id')->toArray();
 
-        $query = Category::with(['salon_services' => function ($q) use ($request, $userLatitude, $userLongitude, $wishlistServiceIds) {
+        $query = Category::with(['salon_services.salon.user:id,name,last_name','salon_services' => function ($q) use ($request, $userLatitude, $userLongitude, $wishlistServiceIds) {
             if ($request->filled('service_name')) {
                 $q->where('service_name', 'like', '%' . $request->service_name . '%');
             }

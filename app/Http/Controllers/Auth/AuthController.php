@@ -503,7 +503,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
-            'email'     => 'required|email|max:255',
+            'email'     => 'nullable|email|max:255',
             'google_id' => 'string|nullable',
             'apple_id'  => 'string|nullable',
             'photo'     => 'image|mimes:jpeg,png,jpg,gif|max:10240',
@@ -512,8 +512,12 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'message' => $validator->errors()], 400);
         }
-
-        $existingUser = User::where('email', $request->email)->first();
+        if ($request->apple_id) {
+            $existingUser = User::where('apple_id', $request->apple_id)->first();
+        }
+        elseif ($request->email) {
+            $existingUser = User::where('email', $request->email)->first();
+        }
 
         if ($existingUser) {
             $socialId = ($request->has('google_id') && $existingUser->google_id === $request->google_id) || ($request->has('apple_id') && $existingUser->apple_id === $request->apple_id);

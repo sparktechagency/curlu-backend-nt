@@ -92,6 +92,7 @@ class UserServiceController extends Controller
     //get discount offers services
     public function serviceOffer(Request $request)
     {
+
         $offerService = SalonService::with('salon.user')
             ->whereNotNull('discount_price')
             ->orderBy('discount_price', 'desc')
@@ -102,6 +103,7 @@ class UserServiceController extends Controller
             $isInWishlist = ServiceWishlist::where('service_id', $service->id)
                 ->where('user_id', Auth::user()->id)
                 ->exists();
+
             return [
                 'id' => $service->id,
                 'service_id' => $service->id,
@@ -112,6 +114,7 @@ class UserServiceController extends Controller
                 'discount_price' => $service->discount_price,
                 'service_image' => $service->service_image,
                 'service_description' => $service->service_description,
+                'service_status' => $service->service_status,
                 'salon_name' => $service->salon->user->name . ' ' . $service->salon->user->last_name,
                 'salon_address' => $service->salon->user->address,
                 'salon_image' => $service->salon->user->image,

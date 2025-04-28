@@ -45,6 +45,7 @@ class OrderTransactionController extends Controller
     // }
     public function index(Request $request)
     {
+
         $orders = Order::with('user', 'salon', 'service');
 
         if ($request->has('search') && $request->search) {

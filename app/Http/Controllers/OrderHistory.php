@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Order;
 use App\Models\Salon;
 use App\Models\Review;
 use App\Models\SalonInvoice;
@@ -51,6 +52,11 @@ class OrderHistory extends Controller
         $salon_invoice         = SalonInvoice::with('user')->where('invoice_number', $id)->first();
         $salon_invoice->status = 'Past';
         $salon_invoice->save();
+
+        $order=Order::where('invoice_number',$id)->first();
+        $order->status='completed';
+        $order->save();
+
 
         $salon=Salon::findOrFail($salon_invoice->salon_id);
         $service_name      = SalonService::where('id', $salon_invoice->service_id)->first();
