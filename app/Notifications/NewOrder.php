@@ -39,8 +39,8 @@ class NewOrder extends Notification
     {
         return [
             'message'=>'You have a new order.',
-            'name' =>$this->order['buyer_name'].' '.'placed a new order.',
-            'address' => $this->order['address'],
+            'order' =>$this->order['buyer_name'].' '.'placed a new order.',
+            // 'address' => $this->order['address'],
             'created_at' => now(),
         ];
     }
