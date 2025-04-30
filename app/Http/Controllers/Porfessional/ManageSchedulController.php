@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Porfessional;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Salon;
 use App\Models\SalonScheduleTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +18,9 @@ class ManageSchedulController extends Controller
             $salon_id          = $request->salon_id;
             $salonScheduleTime = SalonScheduleTime::where('salon_id', $salon_id)
                 ->get();
-        } else {
-            $salonScheduleTime = SalonScheduleTime::where('salon_id', auth()->user()->id)
+        } elseif(Auth::user()->role_type == 'PROFESSIONAL') {
+            $salon_id=Salon::where('user_id',Auth::user()->id)->first()->id;
+            $salonScheduleTime = SalonScheduleTime::where('salon_id', operator: $salon_id)
                 ->get();
         }
 
@@ -29,7 +31,7 @@ class ManageSchedulController extends Controller
         $salonScheduleTime->transform(function ($scheduleTime) {
             $schedule                   = json_decode($scheduleTime->schedule);
             $bookingTime                = json_decode($scheduleTime->booking_time);
-            $scheduleTime->schedule     = $schedule;
+            $scheduleTime->schedule = $schedule;
             $scheduleTime->booking_time = $bookingTime;
             return $scheduleTime;
         });
@@ -39,10 +41,9 @@ class ManageSchedulController extends Controller
 
     public function storeSchedule(Request $request)
     {
-
         $validated = Validator::make($request->all(), [
-            'schedule'    => 'required|json',
-            'capacity'    => 'required|integer',
+            'schedule' => 'required|json',
+            'capacity' => 'nullable|integer',
         ]);
 
         if ($validated->fails()) {
@@ -52,14 +53,14 @@ class ManageSchedulController extends Controller
                 'errors'  => $validated->errors(),
             ], 422);
         }
-        return 'ok';
 
-        $salon_id     = auth()->user()->id;
+        $auth_user_id = auth()->user()->id;
+        $salon_id     = Salon::where('user_id', $auth_user_id)->first()->id;
         $scheduleTime = SalonScheduleTime::where('salon_id', $salon_id)->first();
         if ($scheduleTime) {
             $scheduleTime->schedule     = $request->schedule ?? $scheduleTime->schedule;
             $scheduleTime->booking_time = $request->booking_time ?? $scheduleTime->booking_time;
-            $scheduleTime->salon_id     = auth()->user()->id;
+            $scheduleTime->salon_id     = $salon_id;
             $scheduleTime->capacity     = $request->capacity ?? $scheduleTime->capacity;
             $scheduleTime->save();
 

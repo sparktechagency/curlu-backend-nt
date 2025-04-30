@@ -21,4 +21,5 @@ class SalonScheduleTime extends Model
     {
         return $this->belongsTo(Salon::class);
     }
-}
+    }
+

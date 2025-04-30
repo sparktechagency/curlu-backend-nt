@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\Salon;
+use App\Models\SalonScheduleTime;
 use App\Models\User;
 use App\Notifications\NewSalonNotification;
 use Illuminate\Http\Request;
@@ -106,6 +107,13 @@ class AuthController extends Controller
                     foreach ($admins as $admin) {
                         $admin->notify(new NewSalonNotification($user));
                     }
+
+                    $scheduleTime               = new SalonScheduleTime();
+                    $scheduleTime->schedule     = '[{"day":"Sunday","open_time":"9:00 AM","close_time":"5:00 PM"},{"day":"Monday","open_time":"9:00 AM","close_time":"5:00 PM"},{"day":"Tuesday","open_time":"9:00 AM","close_time":"5:00 PM"},{"day":"Wednesday","open_time":"9:00 AM","close_time":"5:00 PM"},{"day":"Thursday","open_time":"9:00 AM","close_time":"5:00 PM"},{"day":"Friday","open_time":"10:00 AM","close_time":"4:00 PM"},{"day":"Saturday","open_time":"Closed","close_time":"Closed"}]';
+                    $scheduleTime->booking_time = '["9.00am", "4.00pm", "9.30am"]';
+                    $scheduleTime->salon_id     = $salon->id;
+                    $scheduleTime->capacity     = 1;
+                    $scheduleTime->save();
                     DB::commit();
                     Mail::to($request->email)->send(new OtpMail($user->otp));
                     return response()->json([
@@ -514,8 +522,7 @@ class AuthController extends Controller
         }
         if ($request->apple_id) {
             $existingUser = User::where('apple_id', $request->apple_id)->first();
-        }
-        elseif ($request->email) {
+        } elseif ($request->email) {
             $existingUser = User::where('email', $request->email)->first();
         }
 
