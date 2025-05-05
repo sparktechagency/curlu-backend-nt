@@ -24,4 +24,5 @@ class Order extends Model
         return $this->belongsTo(SalonService::class);
     }
 
+
 }

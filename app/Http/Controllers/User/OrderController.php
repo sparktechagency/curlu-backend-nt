@@ -3,6 +3,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Salon;
 use App\Models\SalonInvoice;
 use App\Models\SalonService;
 use Carbon\Carbon;
@@ -164,14 +165,16 @@ class OrderController extends Controller
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek   = Carbon::now()->endOfWeek();
 
-        $weeklyEarning = Order::where('salon_id', Auth::user()->id)
+        $salon_id=Salon::where('user_id',Auth::user()->id)->first()->id;
+        $weeklyEarning = Order::where('salon_id', $salon_id)
             ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
             ->sum('salon_earning');
 
-        $totalEarning = Order::where('salon_id', Auth::user()->id)->sum('salon_earning');
+        $totalEarning = Order::where('salon_id', $salon_id)->sum('salon_earning');
 
-        $orders = Order::with('user:id,name,last_name')
-            ->where('salon_id', Auth::user()->id)
+          $orders = Order::with('user:id,name,last_name')
+            ->where('salon_id',$salon_id)
+            ->latest('id')
             ->get();
 
         $earningDetails = $orders->map(function ($order) {
@@ -179,7 +182,7 @@ class OrderController extends Controller
                 'user_name'      => $order->user->name . ' ' . $order->user->last_name,
                 'invoice_number' => $order->invoice_number,
                 'schedule_date'  => $order->schedule_date,
-                'schedule_time'  => \Carbon\Carbon::createFromFormat('H:i:s', $order->schedule_time)->format('h:i a'),
+                'schedule_time'  => $order->schedule_time,
                 'amount'         => $order->amount,
             ];
         });
