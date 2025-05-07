@@ -7,6 +7,7 @@ use App\Mail\OtpMail;
 use App\Models\Order;
 use App\Models\Salon;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -114,7 +115,7 @@ class SalonController extends Controller
 
     public function salon_invoice(Request $request)
     {
-        
+
         $orders = Order::with('user', 'salon', 'service');
 
         if ($request->has('search') && $request->search) {
@@ -128,6 +129,10 @@ class SalonController extends Controller
                 $query->where('service_name', 'like', '%' . $searchTerm . '%');
             });
         }
+        if ($request->has('date') && $request->date) {
+            $orders = $orders->whereDate('completed_at', $request->date);
+        }
+
 
         $orders = $orders->paginate($request->per_page ?? 10);
 

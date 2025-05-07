@@ -94,6 +94,10 @@ class BSalonServiceController extends Controller
         }
 
         // Filter by service_status
+        if ($request->has('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
         if ($request->has('service_status')) {
             $query->where('service_status', $request->service_status);
         }
