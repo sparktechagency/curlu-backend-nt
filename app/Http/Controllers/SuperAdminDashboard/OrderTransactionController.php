@@ -62,6 +62,7 @@ class OrderTransactionController extends Controller
             $orders = $orders->orWhereHas('service', function ($query) use ($searchTerm) {
                 $query->where('service_name', 'like', '%' . $searchTerm . '%');
             });
+            $orders = $orders->orWhere('invoice_number', $searchTerm);
         }
 
         if ($request->has('status') && $request->status) {

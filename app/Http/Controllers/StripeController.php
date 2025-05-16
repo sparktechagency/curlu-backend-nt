@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\PaymentDetail;
+use App\Models\PlatformFee;
 use App\Models\Salon;
 use App\Models\SalonInvoice;
 use App\Models\SalonService;
@@ -73,7 +74,8 @@ class StripeController extends Controller
         }
 
         $price                 = $request->price;
-        $platformFeePercentage = 3; // 3% platform fee
+
+        $platformFeePercentage = PlatformFee::first()->curlu_earning;
         $totalAmount           = (int) ($price * 100);
         $platformFee           = (int) (($totalAmount * $platformFeePercentage) / 100);
 
@@ -130,9 +132,11 @@ class StripeController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'message' => $validator->errors()], 400);
         }
+
         $invoice_number = rand(1000000, 90000000);
         $price          = $request->price;
-        $curlu_earning  = ($price * 3) / 100;
+        $platformFeePercentage = PlatformFee::first()->curlu_earning;
+        $curlu_earning  = ($price * $platformFeePercentage) / 100;
         $salon_earning  = $price - $curlu_earning;
 
         $payment_detail = PaymentDetail::create([
@@ -203,7 +207,7 @@ class StripeController extends Controller
 
         $price                 = $request->price;
         $totalAmount           = (int) ($price * 100);
-        $platformFeePercentage = 3; // 3% platform fee
+        $platformFeePercentage = PlatformFee::first()->curlu_earning;
         $platformFee           = (int) (($totalAmount * $platformFeePercentage) / 100);
 
         $service = SalonService::find($request->service_id);
@@ -246,7 +250,6 @@ class StripeController extends Controller
                         'destination' => $professional->stripe_account_id,
                     ],
                 ],
-                // 'success_url'          => url('/payment-success?session_id={CHECKOUT_SESSION_ID}'),
                 'success_url'          => url('/payment-success') . '?session_id={CHECKOUT_SESSION_ID}&user_id=' . Auth::user()->id .
                 '&user_email=' . Auth::user()->email . '&salon_id=' . $request->salon_id .
                 '&service_id=' . $request->service_id . '&price=' . $request->price .

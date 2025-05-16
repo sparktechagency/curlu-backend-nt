@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Http\Controllers\SuperAdminDashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\PlatformFee;
 use App\Models\Salon;
 use App\Models\SalonInvoice;
 use App\Models\User;
@@ -13,9 +13,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // count
-        $total_user = User::where('role_type', 'USER')->count();
-        $daily_user = User::where('role_type', 'USER')->whereDate('created_at', now())->count();
-        $total_salon = Salon::count();
+        $total_user    = User::where('role_type', 'USER')->count();
+        $daily_user    = User::where('role_type', 'USER')->whereDate('created_at', now())->count();
+        $total_salon   = Salon::count();
         $total_earning = SalonInvoice::sum('curlu_earning');
         // app user
         $appUsers = User::query()
@@ -28,7 +28,7 @@ class DashboardController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $app_users[] = [
                 'month' => $i,
-                'user' => $appUsers->firstWhere('month', $i)->count ?? 0,
+                'user'  => $appUsers->firstWhere('month', $i)->count ?? 0,
             ];
         }
 
@@ -45,7 +45,7 @@ class DashboardController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $active_users[] = [
                 'month' => $i,
-                'user' => $activeUsers->firstWhere('month', $i)->count ?? 0,
+                'user'  => $activeUsers->firstWhere('month', $i)->count ?? 0,
             ];
         }
 
@@ -81,14 +81,26 @@ class DashboardController extends Controller
         }
 
         return response()->json([
-            'total_user' => $total_user,
-            'daily_user' => $daily_user,
-            'total_salon' => $total_salon,
-            'total_earning' => $total_earning,
-            'app_users' => $app_users,
-            'active_users' => $active_users,
-            'total_earning_growth' => $monthlyEarnings,
+            'total_user'            => $total_user,
+            'daily_user'            => $daily_user,
+            'total_salon'           => $total_salon,
+            'total_earning'         => $total_earning,
+            'app_users'             => $app_users,
+            'active_users'          => $active_users,
+            'total_earning_growth'  => $monthlyEarnings,
             'total_salon_statistic' => $monthlySalons,
         ], 200);
+    }
+
+    public function updatePlatformFee(Request $request)
+    {
+        $platform_fee                = PlatformFee::findOrFail(1);
+        $platform_fee->curlu_earning = $request->curlu_earning;
+        $platform_fee->save();
+        return response()->json([
+            'status'  => 'true',
+            'message' => 'Platform fee updated successfully.',
+            'data'    => $platform_fee,
+        ]);
     }
 }
