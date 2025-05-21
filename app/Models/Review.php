@@ -18,4 +18,9 @@ class Review extends Model
     {
         return $this->belongsTo(SalonService::class, 'service_id', 'id');
     }
+
+    public function salon()
+    {
+        return $this->belongsTo(Salon::class, 'salon_id', 'id');
+    }
 }

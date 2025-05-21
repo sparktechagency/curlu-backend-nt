@@ -96,6 +96,7 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
     Route::get('/manage-haircut', [ManageHaircutOfferController::class, 'index']);
     //change platform info
     Route::post('/update-platform-fee', [DashboardController::class, 'updatePlatformFee']);
+    Route::get('/get-platform-fee', [DashboardController::class, 'getPlatformFee']);
 });
 
 Route::middleware(['professional', 'auth:api'])->group(function () {

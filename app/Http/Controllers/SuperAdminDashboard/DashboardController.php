@@ -103,4 +103,13 @@ class DashboardController extends Controller
             'data'    => $platform_fee,
         ]);
     }
+    public function getPlatformFee()
+    {
+        $platform_fee                = PlatformFee::findOrFail(1);
+        return response()->json([
+            'status'  => 'true',
+            'message' => 'Platform fee retreived successfully.',
+            'data'    => $platform_fee,
+        ]);
+    }
 }
