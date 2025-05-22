@@ -2,7 +2,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FeedbackController extends Controller
 {
@@ -33,25 +35,39 @@ class FeedbackController extends Controller
     // }
     public function index(Request $request)
     {
-        $reviews = Review::with('user:id,name,last_name,email,image,address,phone', 'salon.user:id,name,last_name,email,image,address,phone')->latest('id');
+        $reviews = Review::with([
+            'user:id,name,last_name,email,image,address,phone',
+            'salon.user:id,name,last_name,email,image,address,phone',
+        ])->latest('id');
 
         if ($request->filled('date')) {
             $reviews = $reviews->whereDate('created_at', $request->date);
         }
 
-        if ($request->filled('salon_name')) {
-            $salonName = $request->salon_name;
-            $reviews   = $reviews->whereHas('salon.user', function ($q) use ($salonName) {
-                $q->where('name', 'LIKE', "%" . $salonName . "%")
-                    ->orWhere('last_name', 'LIKE', "%" . $salonName . "%");
+        if ($request->filled('salon_id')) {
+            $reviews = $reviews->whereHas('salon', function ($q) use ($request) {
+                $q->where('id', $request->salon_id);
             });
         }
 
         $reviews = $reviews->paginate($request->per_page ?? 10);
+
         return response()->json([
             'message' => 'success',
             'data'    => $reviews,
         ], 200);
+    }
+
+    public function getAllSalon()
+    {
+        $salons = User::where('role_type', 'PROFESSIONAL')
+            ->select('id', DB::raw("CONCAT(name, ' ', last_name) as name"))
+            ->get();
+        return response()->json([
+            'status'  => true,
+            'message' => 'Salon list retrieved successfully',
+            'data'    => $salons,
+        ]);
     }
 
 }

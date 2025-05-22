@@ -97,7 +97,9 @@ class AuthController extends Controller
                     if ($request->file('id_card')) {
                         $salon->id_card = saveImage($request, 'id_card');
                     }
-                    $salon->kbis        = $request->kbis;
+                    if ($request->file('kbis')) {
+                        $salon->kbis = saveImage($request, 'kbis');
+                    }
                     $salon->iban_number = $request->iban_number;
                     if ($request->file('cover-image')) {
                         $salon->cover_image = saveImage($request, 'cover-image');

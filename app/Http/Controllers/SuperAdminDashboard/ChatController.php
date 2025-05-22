@@ -26,11 +26,15 @@ class ChatController extends Controller
         if ($validator->fails()) {
             return response()->json(['error', $validator->errors()]);
         }
-        $message = Message::create([
-            'sender_id'   => Auth::user()->id,
-            'receiver_id' => $request->receiver_id,
-            'message'     => $request->message,
-        ]);
+        $message              = new Message();
+        $message->sender_id   = Auth::user()->id;
+        $message->receiver_id = $request->receiver_id;
+        $message->message     = $request->message;
+        if ($request->file('message_image')) {
+            $message->image = saveImage($request, 'message_image');
+        }
+        $message->save();
+
         return response()->json(['message' => 'Message saved successfully', 'data' => $message], 200);
     }
 

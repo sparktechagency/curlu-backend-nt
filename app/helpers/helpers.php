@@ -36,6 +36,8 @@ function saveImage($request, $type)
     $directoryMap = [
         'image' => 'adminAsset/image/',
         'id_card' => 'adminAsset/id_card/',
+        'kbis' => 'adminAsset/kbis/',
+        'message_image' => 'adminAsset/message_image/',
         'cover-image' => 'adminAsset/cover-image/',
         'category_image' => 'adminAsset/category_image/',
         'service_image' => 'adminAsset/service_image/',

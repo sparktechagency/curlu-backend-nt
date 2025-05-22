@@ -90,6 +90,7 @@ Route::middleware(['admin', 'auth:api'])->group(function () {
 
     // feedback api
     Route::get('/feedback', [FeedbackController::class, 'index']);
+    Route::get('/get-all-salon', [FeedbackController::class, 'getAllSalon']);
     // order_transaction api
     Route::get('/order_transaction', [OrderTransactionController::class, 'index']);
     // manage haircut offer api
