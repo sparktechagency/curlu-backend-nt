@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\Review;
 use App\Models\User;
+use App\Models\Salon;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,7 @@ class FeedbackController extends Controller
     // }
     public function index(Request $request)
     {
+
         $reviews = Review::with([
             'user:id,name,last_name,email,image,address,phone',
             'salon.user:id,name,last_name,email,image,address,phone',
@@ -45,7 +47,7 @@ class FeedbackController extends Controller
         }
 
         if ($request->filled('salon_id')) {
-            $reviews = $reviews->whereHas('salon', function ($q) use ($request) {
+            $reviews = $reviews->whereHas('salon.user', function ($q) use ($request) {
                 $q->where('id', $request->salon_id);
             });
         }
