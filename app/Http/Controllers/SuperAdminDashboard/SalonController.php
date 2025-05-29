@@ -19,6 +19,7 @@ class SalonController extends Controller
 {
     public function allSalon(Request $request)
     {
+        $per_page= $request->per_page ?? 10;
         $query = Salon::with('user')->whereHas('user', function ($q) use ($request) {
             $q->where('role_type', 'PROFESSIONAL');
 
@@ -33,7 +34,7 @@ class SalonController extends Controller
             }
         });
 
-        $salons = $query->paginate(10);
+        $salons = $query->paginate($per_page);
         return response()->json($salons, 200);
     }
 
