@@ -145,6 +145,9 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Your email is not verified'], 401);
             }
         }
+        if ($userData && $userData->active_status == 0) {
+            return response()->json(['message' => 'Your account is currently inactive'], 200);
+        }
 
         $credentials = $request->only('email', 'password');
 //        return auth('api')->attempt($credentials);
@@ -179,7 +182,8 @@ class AuthController extends Controller
 
         $user->email_verified_at = now();
         $user->otp               = 0;
-//        $user->status = 'active';
+        $user->status            = 'active';
+        $user->active_status     = 1;
         $user->save();
         //$result = app('App\Http\Controllers\NotificationController')->sendNotification('Welcome to the Barbar app', $user->created_at, $user);
         return response([
