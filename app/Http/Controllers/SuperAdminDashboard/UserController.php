@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\SuperAdminDashboard;
 
 use App\Http\Controllers\Controller;
@@ -30,12 +29,12 @@ class UserController extends Controller
     public function userStatus(Request $request, $id)
     {
         $user = User::where('id', $id)->first();
-        if ($user->user_status == 'active') {
-            $status = 'inactive';
+        if ($user->is_blocked == 0) {
+            $status = 1;
         } else {
-            $status = 'active';
+            $status = 0;
         }
-        $user->user_status = $status;
+        $user->is_blocked = $status;
         $user->save();
         return response()->json(['message' => 'Status updated', 'data' => $user], 200);
     }

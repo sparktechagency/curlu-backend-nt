@@ -145,13 +145,12 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Your email is not verified'], 401);
             }
         }
-        // if ($userData && $userData->active_status == 0) {
-        //     return response()->json(['message' => 'Your account is currently inactive'], 200);
-        // }
+        if ($userData && $userData->is_blocked == 1) {
+            return response()->json(['message' => 'Your account is currently inactive'], 200);
+        }
 
         $credentials = $request->only('email', 'password');
-//        return auth('api')->attempt($credentials);
-        $token = $this->guard()->attempt($credentials);
+        $token       = $this->guard()->attempt($credentials);
         if ($token = $this->guard()->attempt($credentials)) {
             return $this->respondWithToken($token);
         }
@@ -182,10 +181,9 @@ class AuthController extends Controller
 
         $user->email_verified_at = now();
         $user->otp               = 0;
-        $user->status            = 'active';
-        // $user->active_status     = 1;
+        $user->user_status       = 'active';
         $user->save();
-        //$result = app('App\Http\Controllers\NotificationController')->sendNotification('Welcome to the Barbar app', $user->created_at, $user);
+
         return response([
             'message' => 'Email verified successfully',
             'token'   => $this->respondWithToken($token),
@@ -195,10 +193,8 @@ class AuthController extends Controller
     public function respondWithToken($token)
     {
         $user = $this->guard()->user()->makeHidden(['otp', 'created_at', 'updated_at']);
-        // $refreshToken = $this->guard()->refresh();
         return response()->json([
             'access_token' => $token,
-            // 'refresh_token' => $refreshToken,
             'user'         => $user,
             'token_type'   => 'bearer',
             'user'         => $user,
@@ -275,18 +271,15 @@ class AuthController extends Controller
     public function resendOtp(Request $request)
     {
         $user = User::where('email', $request->email)
-        //            ->where('verify_email', 0)
             ->first();
 
         if (! $user) {
             return response()->json(['message' => 'User not found or email already verified'], 404);
         }
 
-        // Check if OTP resend is allowed (based on time expiration)
         $currentTime  = now();
-        $lastResentAt = $user->last_otp_sent_at; // Assuming you have a column in your users table to track the last OTP sent time
+        $lastResentAt = $user->last_otp_sent_at;
 
-                             // Define your expiration time (e.g., 5 minutes)
         $expirationTime = 5; // in minutes
 
         if ($lastResentAt && $lastResentAt->addMinutes($expirationTime)->isFuture()) {
@@ -312,17 +305,6 @@ class AuthController extends Controller
         $user = $this->guard()->user(); // Assuming the user is authenticated
 
         if ($user->role_type == 'USER' || $user->role_type == 'ADMIN' || $user->role_type == 'SUPER ADMIN') {
-            // $this->validate($request, [
-            //     'name' => 'required|string|max:255',
-            //     'last_name' => 'sometimes|string|max:255',
-            //     'password' => 'sometimes|confirmed|min:6',
-            //     'phone' => 'sometimes|string|max:15',
-            //     'address' => 'sometimes|string|max:255',
-            //     'date_of_birth' => 'sometimes|date',
-            //     'gender' => 'sometimes|string|in:male,female,other',
-            //     'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
-            // ]);
-
             $user->name          = $request->name ?? $user->name;
             $user->last_name     = $request->last_name ?? $user->last_name;
             $user->phone         = $request->phone ?? $user->phone;
@@ -432,10 +414,8 @@ class AuthController extends Controller
     public function emailVerifiedForResetPass(Request $request)
     {
 
-        // dd($request->otp);
         if (isset($request->otp)) {
             $user = User::where('otp', $request->otp)->first();
-            // dd($user);
             if ($user) {
                 $validator = Validator::make($request->all(), [
                     'password' => 'required|string|min:6|confirmed',
@@ -457,8 +437,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'Token Not Found!'], 404);
         }
     }
-
-    //user logout
 
     public function logout()
     {
@@ -513,8 +491,10 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }
     }
+
     public function socialLogin(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
             'email'     => 'nullable|email|max:255',
@@ -531,8 +511,10 @@ class AuthController extends Controller
         } elseif ($request->email) {
             $existingUser = User::where('email', $request->email)->first();
         }
-
         if ($existingUser) {
+            if ($existingUser && $existingUser->is_blocked == 1) {
+                return response()->json(['message' => 'Your account is currently inactive'], 200);
+            }
             $socialId = ($request->has('google_id') && $existingUser->google_id === $request->google_id) || ($request->has('apple_id') && $existingUser->apple_id === $request->apple_id);
 
             if ($socialId) {
@@ -540,7 +522,6 @@ class AuthController extends Controller
                 $success = [
                     'access_token' => $token,
                     'token_type'   => 'bearer',
-                    // 'expires_in'   => auth()->factory()->getTTL() * 60,
                     'user'         => $existingUser,
                 ];
                 return response()->json([
@@ -562,7 +543,6 @@ class AuthController extends Controller
                 $success = [
                     'access_token' => $token,
                     'token_type'   => 'bearer',
-                    // 'expires_in'   => auth()->factory()->getTTL() * 60,
                     'user'         => $existingUser,
                 ];
                 return response()->json([
@@ -572,7 +552,6 @@ class AuthController extends Controller
                 ], 200);
             }
         }
-
         $user = User::create([
             'name'              => $request->name,
             'email'             => $request->email,
@@ -595,7 +574,6 @@ class AuthController extends Controller
         $success = [
             'access_token' => $token,
             'token_type'   => 'bearer',
-            // 'expires_in'   => auth()->factory()->getTTL() * 60,
             'user'         => $user,
         ];
         return response()->json([

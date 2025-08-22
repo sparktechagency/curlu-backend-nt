@@ -11,6 +11,7 @@ class ReviewController extends Controller
 {
     public function store(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'salon_id'   => 'required',
             'service_id' => 'required',
@@ -23,6 +24,11 @@ class ReviewController extends Controller
             return response()->json(['status' => false, 'message' => $validator->errors()], 400);
         }
 
+        $already_exists = Review::where('user_id', Auth::id())->where('salon_id', $request->salon_id)->where('service_id', $request->service_id)->where('salon_invoice_id', $request->order_id)->exists();
+
+        if ($already_exists) {
+            return response()->json(['message' => 'You have already reviewed this service for this order'], 400);
+        }
         $review = Review::create([
             'user_id'          => Auth::user()->id,
             'salon_id'         => $request->salon_id,
