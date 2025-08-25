@@ -146,7 +146,7 @@ class AuthController extends Controller
             }
         }
         if ($userData && $userData->is_blocked == 1) {
-            return response()->json(['message' => 'Your account is currently inactive'], 200);
+            return response()->json(['message' => 'Your account is currently inactive'], 401);
         }
 
         $credentials = $request->only('email', 'password');
@@ -513,7 +513,7 @@ class AuthController extends Controller
         }
         if ($existingUser) {
             if ($existingUser && $existingUser->is_blocked == 1) {
-                return response()->json(['message' => 'Your account is currently inactive'], 200);
+                return response()->json(['message' => 'Your account is currently inactive'], 401);
             }
             $socialId = ($request->has('google_id') && $existingUser->google_id === $request->google_id) || ($request->has('apple_id') && $existingUser->apple_id === $request->apple_id);
 
