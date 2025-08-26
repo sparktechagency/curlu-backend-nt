@@ -18,8 +18,8 @@ class ManageSchedulController extends Controller
             $salon_id          = $request->salon_id;
             $salonScheduleTime = SalonScheduleTime::where('salon_id', $salon_id)
                 ->get();
-        } elseif(Auth::user()->role_type == 'PROFESSIONAL') {
-            $salon_id=Salon::where('user_id',Auth::user()->id)->first()->id;
+        } elseif (Auth::user()->role_type == 'PROFESSIONAL') {
+            $salon_id          = Salon::where('user_id', Auth::user()->id)->first()->id;
             $salonScheduleTime = SalonScheduleTime::where('salon_id', operator: $salon_id)
                 ->get();
         }
@@ -31,7 +31,7 @@ class ManageSchedulController extends Controller
         $salonScheduleTime->transform(function ($scheduleTime) {
             $schedule                   = json_decode($scheduleTime->schedule);
             $bookingTime                = json_decode($scheduleTime->booking_time);
-            $scheduleTime->schedule = $schedule;
+            $scheduleTime->schedule     = $schedule;
             $scheduleTime->booking_time = $bookingTime;
             return $scheduleTime;
         });
@@ -114,11 +114,8 @@ class ManageSchedulController extends Controller
             return response()->json(['message' => 'Something went wrong']);
         }
     }
-
     public function upcomingBooking(Request $request)
     {
-        // return Auth::user();
-
         $date = $request->date ?? now()->toDateString();
 
         $upcomingBooking = Order::with('user:id,name,last_name')
@@ -139,7 +136,7 @@ class ManageSchedulController extends Controller
             return [
                 'user_name'      => $booking->user->name . ' ' . $booking->user->last_name,
                 'invoice_number' => $booking->invoice_number,
-                'schedule_time'  => \Carbon\Carbon::createFromFormat('H:i:s', trim($booking->schedule_time))
+                'schedule_time'  => \Carbon\Carbon::parse(trim($booking->schedule_time))
                     ->format('h:i a'),
                 'schedule_date'  => $booking->schedule_date,
             ];
