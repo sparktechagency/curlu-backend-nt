@@ -57,7 +57,7 @@ class AuthController extends Controller
                 $user->gender        = $request->gender;
                 $user->otp           = Str::random(6);
                 if ($request->file('image')) {
-                    $user->image = saveImage($request, 'image');
+                    $user->avatar = saveImage($request, 'image');
                 }
                 $user->save();
 
@@ -85,7 +85,7 @@ class AuthController extends Controller
                     $user->role_type     = $request->role_type;
                     $user->otp           = rand(100000,999999);
                     if ($request->file('image')) {
-                        $user->image = saveImage($request, 'image');
+                        $user->avatar = saveImage($request, 'image');
                     }
                     $user->save();
 
@@ -314,7 +314,7 @@ class AuthController extends Controller
             $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
             $user->gender        = $request->gender ?? $user->gender;
             if ($request->file('image')) {
-                $user->image = saveImage($request, 'image');
+                $user->avatar = saveImage($request, 'image');
             }
 
             $user->save();
@@ -361,7 +361,7 @@ class AuthController extends Controller
                 $user->gender        = $request->gender ?? $user->gender;
 
                 if ($request->file('image')) {
-                    $user->image = saveImage($request, 'image');
+                    $user->avatar = saveImage($request, 'image');
                 }
                 $user->save();
 
@@ -567,7 +567,7 @@ class AuthController extends Controller
             $final_name = time() . '.' . $image->getClientOriginalExtension();
             $image->move(public_path('adminAsset/image/'), $final_name);
             $user->update([
-                'image' => 'adminAsset/image/' . $final_name,
+                'avatar' => 'adminAsset/image/' . $final_name,
             ]);
         }
         $token   = JWTAuth::fromUser($user);
