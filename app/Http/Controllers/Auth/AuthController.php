@@ -83,7 +83,7 @@ class AuthController extends Controller
                     $user->latitude      = $request->latitude;
                     $user->longitude     = $request->longitude;
                     $user->role_type     = $request->role_type;
-                    $user->otp           = Str::random(6);
+                    $user->otp           = rand(100000,999999);
                     if ($request->file('image')) {
                         $user->image = saveImage($request, 'image');
                     }
