@@ -38,7 +38,7 @@ function saveImage($request, $type)
         'id_card' => 'adminAsset/id_card/',
         'kbis' => 'adminAsset/kbis/',
         'message_image' => 'adminAsset/message_image/',
-        'cover-image' => 'adminAsset/cover-image/',
+        'cover_image' => 'adminAsset/cover_image/',
         'category_image' => 'adminAsset/category_image/',
         'service_image' => 'adminAsset/service_image/',
         'product_image' => 'adminAsset/product_image/',
