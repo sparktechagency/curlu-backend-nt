@@ -97,12 +97,12 @@ class AuthController extends Controller
                     if ($request->file('id_card')) {
                         $salon->id_card = saveImage($request, 'id_card');
                     }
-                    if ($request->file('kbis')) {
-                        $salon->kbis = saveImage($request, 'kbis');
+                    if ($request->file('cover_image')) {
+                        $salon->kbis = saveImage($request, 'cover_image');
                     }
                     $salon->iban_number = $request->iban_number;
-                    if ($request->file('cover-image')) {
-                        $salon->cover_image = saveImage($request, 'cover-image');
+                    if ($request->file('cover_image')) {
+                        $salon->cover_image = saveImage($request, 'cover_image');
                     }
                     $salon->save();
                     $admins = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->get();
