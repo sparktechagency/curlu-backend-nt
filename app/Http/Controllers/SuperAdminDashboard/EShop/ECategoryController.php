@@ -11,7 +11,7 @@ class ECategoryController extends Controller
 {
     public function index(Request $request)
     {
-        return ShopCategory::paginate($request->per_page??10);
+        return ShopCategory::latest('id')->paginate($request->per_page??10);
     }
 
     public function store(ShopCategoryRequest $request)

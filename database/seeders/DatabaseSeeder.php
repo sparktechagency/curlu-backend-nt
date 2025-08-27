@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             'last_name'         => 'User',
             'email'             => 'admin@gmail.com',
             'password'          => bcrypt('1234567Rr'),
-            'role_type'         => 'ADMIN',
+            'role_type'         => 'SUPER ADMIN',
             'otp'               => 0,
             'email_verified_at' => now(),
         ]);
