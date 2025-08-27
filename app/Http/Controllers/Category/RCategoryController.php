@@ -35,7 +35,7 @@ class RCategoryController extends Controller
         }
 
         // Paginate results
-        $category = $query->paginate($request->per_page ?? 1);
+        $category = $query->latest('id')->paginate($request->per_page ?? 10);
 
         return response()->json($category);
     }
