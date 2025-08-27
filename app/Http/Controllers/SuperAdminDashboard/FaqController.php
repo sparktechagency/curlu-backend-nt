@@ -10,9 +10,9 @@ use Illuminate\Http\Request;
 class FaqController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $faqs = Faq::paginate(4);
+        $faqs = Faq::paginate($request->per_page??10);
         return response()->json($faqs);
     }
 

@@ -18,7 +18,7 @@ class ProductController extends Controller
         if ($request->filled('product_name')) {
             $products = $products->where('product_name', "LIKE", '%' . $request->product_name . "%");
         }
-        $products = $products->paginate(12);
+        $products = $products->paginate($request->per_page??10);
         return response()->json($products);
     }
 

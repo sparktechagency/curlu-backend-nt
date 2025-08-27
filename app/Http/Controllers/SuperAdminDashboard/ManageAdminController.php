@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Hash;
 class ManageAdminController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        return User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->paginate();
+        return User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->paginate($request->per_page??10);
     }
 
     public function store(AdminRequest $request)

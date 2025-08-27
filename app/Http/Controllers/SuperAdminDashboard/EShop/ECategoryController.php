@@ -9,9 +9,9 @@ use Illuminate\Http\Request;
 
 class ECategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return ShopCategory::paginate(12);
+        return ShopCategory::paginate($request->per_page??10);
     }
 
     public function store(ShopCategoryRequest $request)

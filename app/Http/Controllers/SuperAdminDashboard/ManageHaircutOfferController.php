@@ -21,7 +21,7 @@ class ManageHaircutOfferController extends Controller
                     },
                 ]);
             },
-        ])->select('id', 'salon_id', 'service_name', 'price', 'discount_price', 'service_status', 'created_at')->paginate();
+        ])->select('id', 'salon_id', 'service_name', 'price', 'discount_price', 'service_status', 'created_at')->paginate($request->per_page??10);
         return response()->json($salonServices);
     }
 }

@@ -34,7 +34,7 @@ class SalonController extends Controller
             }
         });
 
-        $salons = $query->paginate($per_page);
+        $salons = $query->latest('id')->paginate($per_page);
         return response()->json($salons, 200);
     }
 

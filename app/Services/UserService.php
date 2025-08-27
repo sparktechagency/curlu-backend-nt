@@ -9,7 +9,7 @@ use App\Models\Salon;
 use App\Models\SalonService;
 use App\Models\User;
 use App\Services\DistanceService;
-
+use Illuminate\Http\Request;
 
 class UserService
 {
@@ -21,12 +21,12 @@ class UserService
         $this->distanceService = $distanceService;
     }
 
-    public function getNearbyProfessionals($userLatitude, $userLongitude, $radius = 10)
+    public function getNearbyProfessionals(Request $request, $userLatitude, $userLongitude, $radius = 10)
     {
 
         $professionals = User::with('salon.salon_services.category')->where('role_type', 'PROFESSIONAL')
             ->select('id', 'name', 'last_name', 'address', 'latitude', 'longitude')
-            ->paginate(10);
+            ->paginate($request->per_page??10);
 
         $nearbyProfessionals = [];
 
@@ -60,8 +60,8 @@ class UserService
 
             $salonServices = $professional->salon->salon_services()
                 ->where('category_id', $category)
-                ->where('service_name', 'like', '%' . $searchTerm . '%') 
-                ->paginate($perPage);
+                ->where('service_name', 'like', '%' . $searchTerm . '%')
+                ->paginate($request->per_page??10);
 
 
             $salonServices->transform(function ($service) {

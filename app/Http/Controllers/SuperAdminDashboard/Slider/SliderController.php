@@ -16,7 +16,7 @@ class SliderController extends Controller
         if($request->filled('id')){
             $query->where('id', $request->id);
         }
-        $sliders = $query->paginate($request->per_page);
+        $sliders = $query->paginate($request->per_page ??10);
         return $sliders;
     }
 

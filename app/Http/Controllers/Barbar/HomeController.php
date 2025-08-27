@@ -24,7 +24,7 @@ class HomeController extends Controller
             });
         }
 
-        $products = $query->paginate(10);
+        $products = $query->paginate($request->per_page??10);
         return response()->json($products);
     }
 }

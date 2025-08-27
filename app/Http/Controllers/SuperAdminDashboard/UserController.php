@@ -10,7 +10,7 @@ class UserController extends Controller
 
     public function userDetails(Request $request)
     {
-       
+
         $query = User::where('role_type', 'USER');
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -22,7 +22,7 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->paginate($request->per_page??10);
+        $users = $query->latest('id')->paginate($request->per_page??10);
 
         return response()->json($users, 200);
     }
