@@ -288,7 +288,7 @@ class AuthController extends Controller
         }
 
         // Generate new OTP
-        $newOtp = Str::random(6);
+        $newOtp = rand(100000,999999);
         Mail::to($user->email)->send(new OtpMail($newOtp));
 
         // Update user data
