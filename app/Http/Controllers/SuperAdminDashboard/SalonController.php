@@ -2,21 +2,28 @@
 
 namespace App\Http\Controllers\SuperAdminDashboard;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Mail\OtpMail;
 use App\Models\Order;
 use App\Models\Salon;
-use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Services\FileUploadService;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class SalonController extends Controller
 {
+         protected $fileuploadService;
+    private $filePath = 'adminAsset/cover_image/';
+    public function __construct(FileUploadService $file_upload_service)
+    {
+        $this->fileuploadService = $file_upload_service;
+    }
     public function allSalon(Request $request)
     {
         $per_page= $request->per_page ?? 10;
@@ -68,8 +75,8 @@ class SalonController extends Controller
             }
             $salon->kbis = $request->kbis;
             $salon->iban_number = $request->iban_number;
-            if ($request->file('cover-image')) {
-                $salon->cover_image = saveImage($request, 'cover-image');
+            if ($request->file('cover_image')) {
+   $user->cover_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('cover_image'), 40, 1320, null, true);
             }
             $salon->save();
             DB::commit();

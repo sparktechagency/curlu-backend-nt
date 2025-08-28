@@ -1,15 +1,22 @@
 <?php
 namespace App\Http\Controllers\SuperAdminDashboard;
 
-use App\Http\Controllers\Controller;
-use App\Models\Message;
 use App\Models\User;
+use App\Models\Message;
 use Illuminate\Http\Request;
+use App\Services\FileUploadService;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {
+         protected $fileuploadService;
+    private $filePath = 'adminAsset/message_image/';
+    public function __construct(FileUploadService $file_upload_service)
+    {
+        $this->fileuploadService = $file_upload_service;
+    }
     public function searchUser(Request $request)
     {
         $user = User::where('name', 'LIKE', '%' . $request->name . '%')->select('id', 'name', 'last_name', 'image')->get();
@@ -32,6 +39,7 @@ class ChatController extends Controller
         $message->message     = $request->message;
         if ($request->file('message_image')) {
             $message->image = saveImage($request, 'message_image');
+               $message->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
         }
         $message->save();
 

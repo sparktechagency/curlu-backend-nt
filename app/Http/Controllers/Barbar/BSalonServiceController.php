@@ -1,20 +1,27 @@
 <?php
 namespace App\Http\Controllers\Barbar;
 
-use Exception;
-use App\Models\User;
-use App\Models\Salon;
-use App\Models\Review;
-use App\Models\SalonService;
-use Illuminate\Http\Request;
-use App\Models\SalonScheduleTime;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Review;
+use App\Models\Salon;
+use App\Models\SalonScheduleTime;
+use App\Models\SalonService;
+use App\Models\User;
+use App\Services\FileUploadService;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BSalonServiceController extends Controller
 {
 
+    protected $fileuploadService;
+    private $filePath = 'adminAsset/service_image/';
+    public function __construct(FileUploadService $file_upload_service)
+    {
+        $this->fileuploadService = $file_upload_service;
+    }
     public function index(Request $request)
     {
         // $query = SalonService::with('salon','category');
@@ -112,14 +119,17 @@ class BSalonServiceController extends Controller
         }
 
         // Paginate the results
-        $services = $query->paginate($request->per_page??10);
+        $services = $query->paginate($request->per_page ?? 10);
 
         return response()->json($services);
     }
 
     public function store(Request $request)
     {
-
+        $user = Auth::user();
+        if (empty($user->stripe_account_id)) {
+            return response()->json(['error' => 'To receive payments, you need to connect your account first.'], 404);
+        }
         $user_id = auth()->user()->id;
         $salon   = Salon::where('user_id', $user_id)->first();
         if (empty($salon)) {
@@ -136,7 +146,7 @@ class BSalonServiceController extends Controller
 //            $service->schedule_status = $request->schedule_status ?? null;
 
         if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
-            $service->service_image = saveImage($request, 'service_image');
+            $service->service_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('service_image'), 40, 1320, null, true);
         }
         $service->save();
         return response()->json(['message' => 'Service created successfully', 'service' => $service], 201);
@@ -169,10 +179,10 @@ class BSalonServiceController extends Controller
 
         // Update image only if a new file is uploaded
         if ($request->hasFile('service_image') && $request->file('service_image')->isValid()) {
-            if (! empty($service->category_image)) {
-                removeImage($service->category_image);
+            if (! empty($service->service_image)) {
+                removeImage($service->service_image);
             }
-            $service->service_image = saveImage($request, 'service_image');
+            $service->service_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('service_image'), 40, 1320, null, true);
         }
         if ($request->filled('service_name')) {
             $service->service_name = $request->service_name;

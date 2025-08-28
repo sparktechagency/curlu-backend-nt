@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers\Category;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Models\SalonService;
-use App\Models\ServiceWishlist;
 use Illuminate\Http\Request;
+use App\Models\ServiceWishlist;
+use App\Services\FileUploadService;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\CategoryRequest;
 
 class RCategoryController extends Controller
 {
+         protected $fileuploadService;
+    private $filePath = 'adminAsset/category_image/';
+    public function __construct(FileUploadService $file_upload_service)
+    {
+        $this->fileuploadService = $file_upload_service;
+    }
 
 //    public function index(Request $request)
 //    {
@@ -46,7 +53,7 @@ class RCategoryController extends Controller
         $category->category_name = $request->category_name;
 
         if ($request->hasFile('category_image') && $request->file('category_image')->isValid()) {
-            $category->category_image = saveImage($request, 'category_image');
+               $category->category_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('category_image'), 40, 1320, null, true);
         }
         $category->save();
 
@@ -89,7 +96,7 @@ class RCategoryController extends Controller
             if (!empty($category->category_image)) {
                 removeImage($category->category_image);
             }
-            $category->category_image = saveImage($request, 'category_image');
+               $category->category_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('category_image'), 40, 1320, null, true);
         }
 
         $category->save();

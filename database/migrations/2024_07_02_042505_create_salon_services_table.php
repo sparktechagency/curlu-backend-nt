@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('price');
             $table->string('discount_price')->nullable();
             $table->string('service_image');
-            $table->string('service_status')->default('active');
+            $table->string('service_status')->default('with appointment');
             $table->timestamps();
         });
     }

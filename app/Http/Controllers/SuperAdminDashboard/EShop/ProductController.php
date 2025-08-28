@@ -1,14 +1,20 @@
 <?php
 namespace App\Http\Controllers\SuperAdminDashboard\EShop;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Services\FileUploadService;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
 
 class ProductController extends Controller
 {
-
+     protected $fileuploadService;
+    private $filePath = 'adminAsset/product_image/';
+    public function __construct(FileUploadService $file_upload_service)
+    {
+        $this->fileuploadService = $file_upload_service;
+    }
     public function index(Request $request)
     {
         $products = Product::query();
@@ -31,7 +37,7 @@ class ProductController extends Controller
         $product->product_details  = $request->product_details;
 
         if ($request->hasFile('product_image') && $request->file('product_image')->isValid()) {
-            $product->product_image = saveImage($request, 'product_image');
+               $product->product_image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('product_image'), 40, 1320, null, true);
         }
         $product->save();
 
