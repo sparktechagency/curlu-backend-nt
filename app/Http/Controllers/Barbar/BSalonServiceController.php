@@ -119,7 +119,7 @@ class BSalonServiceController extends Controller
         }
 
         // Paginate the results
-        $services = $query->paginate($request->per_page ?? 10);
+        $services = $query->latest('id')->paginate($request->per_page ?? 10);
 
         return response()->json($services);
     }
