@@ -1,28 +1,28 @@
 <?php
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\Salon;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Models\SalonScheduleTime;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Models\User;
+use App\Notifications\NewSalonNotification;
 use App\Services\FileUploadService;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use App\Notifications\NewSalonNotification;
+use Illuminate\Support\Str;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-         protected $fileuploadService;
-    private $filePath = 'adminAsset/image/';
+    protected $fileuploadService;
+    private $filePath  = 'adminAsset/image/';
     private $coverPath = 'adminAsset/cover_image/';
     public function __construct(FileUploadService $file_upload_service)
     {
@@ -65,8 +65,9 @@ class AuthController extends Controller
                 $user->gender        = $request->gender;
                 $user->otp           = Str::random(6);
                 if ($request->file('image')) {
-                       $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
-
+                    $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
+                } else {
+                    $user->image = $this->fileuploadService->setPath($this->filePath)->generateUserAvatar($request->name);
                 }
                 $user->save();
 
@@ -92,9 +93,11 @@ class AuthController extends Controller
                     $user->latitude      = $request->latitude;
                     $user->longitude     = $request->longitude;
                     $user->role_type     = $request->role_type;
-                    $user->otp           = rand(100000,999999);
+                    $user->otp           = rand(100000, 999999);
                     if ($request->file('image')) {
-                           $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
+                        $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
+                    } else {
+                        $user->image = $this->fileuploadService->setPath($this->filePath)->generateUserAvatar($request->name);
                     }
                     $user->save();
 
@@ -111,7 +114,7 @@ class AuthController extends Controller
                     }
                     $salon->iban_number = $request->iban_number;
                     if ($request->file('cover_image')) {
-                           $salon->cover_image = $this->fileuploadService->setPath($this->coverPath)->saveOptimizedImage($request->file('cover_image'), 40, 1320, null, true);
+                        $salon->cover_image = $this->fileuploadService->setPath($this->coverPath)->saveOptimizedImage($request->file('cover_image'), 40, 1320, null, true);
                     }
                     $salon->save();
                     $admins = User::whereIn('role_type', ['ADMIN', 'SUPER ADMIN'])->get();
@@ -297,7 +300,7 @@ class AuthController extends Controller
         }
 
         // Generate new OTP
-        $newOtp = rand(100000,999999);
+        $newOtp = rand(100000, 999999);
         Mail::to($user->email)->send(new OtpMail($newOtp));
 
         // Update user data
@@ -323,7 +326,7 @@ class AuthController extends Controller
             $user->date_of_birth = $request->date_of_birth ?? $user->date_of_birth;
             $user->gender        = $request->gender ?? $user->gender;
             if ($request->file('image')) {
-                   $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
+                $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
             }
 
             $user->save();
@@ -370,7 +373,7 @@ class AuthController extends Controller
                 $user->gender        = $request->gender ?? $user->gender;
 
                 if ($request->file('image')) {
-                       $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
+                    $user->image = $this->fileuploadService->setPath($this->filePath)->saveOptimizedImage($request->file('image'), 40, 1320, null, true);
                 }
                 $user->save();
 
@@ -391,7 +394,7 @@ class AuthController extends Controller
                     if ($salon->cover_image && file_exists(public_path($salon->cover_image))) {
                         unlink(public_path($salon->cover_image));
                     }
-                 $salon->cover_image = $this->fileuploadService->setPath($this->coverPath)->saveOptimizedImage($request->file('cover_image'), 40, 1320, null, true);
+                    $salon->cover_image = $this->fileuploadService->setPath($this->coverPath)->saveOptimizedImage($request->file('cover_image'), 40, 1320, null, true);
                 }
 
                 $salon->save();
@@ -504,8 +507,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
             'email'     => 'nullable|email|max:255',
-            'google_id' => 'string|nullable',
-            'apple_id'  => 'string|nullable',
+            'google_id' => 'nullable|string|required_without:apple_id',
+            'apple_id'  => 'nullable|string|required_without:google_id',
             'photo'     => 'image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
@@ -565,6 +568,7 @@ class AuthController extends Controller
             'google_id'         => $request->google_id ?? null,
             'apple_id'          => $request->apple_id ?? null,
             'role_type'         => 'USER',
+            'user_status'       => 'active',
             'email_verified_at' => now(),
         ]);
 
@@ -575,6 +579,8 @@ class AuthController extends Controller
             $user->update([
                 'image' => 'adminAsset/image/' . $final_name,
             ]);
+        } else {
+            $user->image = $this->fileuploadService->setPath($this->filePath)->generateUserAvatar($request->name);
         }
         $token   = JWTAuth::fromUser($user);
         $success = [
