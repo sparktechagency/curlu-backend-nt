@@ -36,7 +36,7 @@ class StripeController extends Controller
         try {
             $account = Account::create([
                 'type'         => 'express',
-                'country'      => 'US',
+                'country'      => 'GB',
                 'email'        => $user->email,
                 'capabilities' => [
                     'card_payments' => ['requested' => true],
