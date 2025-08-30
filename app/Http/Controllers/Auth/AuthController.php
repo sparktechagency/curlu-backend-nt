@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
+use App\Models\Review;
 use App\Models\Salon;
 use App\Models\SalonScheduleTime;
 use App\Models\User;
@@ -220,13 +221,17 @@ class AuthController extends Controller
     {
         if ($this->guard()->user()) {
             $user = $this->guard()->user();
-            if ($user->role_type == 'PROFESSIONAL') {
-                $salon = $user->salon;
+if ($user->role_type == 'PROFESSIONAL') {
+    $salon = $user->salon;
 
-                return response()->json([
-                    'user' => $user,
-                ]);
-            }
+    $avg_rating = Review::where('salon_id', $salon->user_id)->avg('rating');
+
+    return response()->json([
+        'user'   => $user,
+        'rating' => number_format($avg_rating ?? 0, 1), 
+    ]);
+}
+
             return response()->json([
                 'user' => $user,
             ]);
