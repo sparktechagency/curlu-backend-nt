@@ -25,14 +25,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/connected', function (Request $request) {
-    $status                  = $request->query('status');
-    $email                   = $request->query('email');
-    $accountId               = $request->query('account_id');
-    $user                    = User::where('email', $email)->first();
-    $user->stripe_account_id = $accountId;
-    $user->save();
-});
 
 Route::get('/payment-success', function (Request $request) {
 

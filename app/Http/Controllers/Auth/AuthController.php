@@ -314,7 +314,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
 
-        $user = $this->guard()->user(); // Assuming the user is authenticated
+        $user = $this->guard()->user();
 
         if ($user->role_type == 'USER' || $user->role_type == 'ADMIN' || $user->role_type == 'SUPER ADMIN') {
             $user->name          = $request->name ?? $user->name;

@@ -1,37 +1,37 @@
 <?php
 
+use App\Http\Controllers\AboutUsController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Barbar\BSalonServiceController;
+use App\Http\Controllers\Barbar\HomeController;
+use App\Http\Controllers\Category\RCategoryController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\OrderHistory;
+use App\Http\Controllers\Porfessional\ManageSchedulController;
+use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\SuperAdminDashboard\ChatController;
+use App\Http\Controllers\SuperAdminDashboard\DashboardController;
+use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
+use App\Http\Controllers\SuperAdminDashboard\EShop\ProductController;
+use App\Http\Controllers\SuperAdminDashboard\FaqController;
+use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
+use App\Http\Controllers\SuperAdminDashboard\ManageHaircutOfferController;
+use App\Http\Controllers\SuperAdminDashboard\NotificationController;
+use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
+use App\Http\Controllers\SuperAdminDashboard\SalonController;
+use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
+use App\Http\Controllers\SuperAdminDashboard\UserController;
+use App\Http\Controllers\TermsConditionController;
+use App\Http\Controllers\USalonController;
+use App\Http\Controllers\User\OrderController;
+use App\Http\Controllers\User\UserServiceController;
+use App\Http\Controllers\User\WishlistController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderHistory;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\StripeController;
-use App\Http\Controllers\USalonController;
-use App\Http\Controllers\AboutUsController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\User\OrderController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\Barbar\HomeController;
-use App\Http\Controllers\PrivacyPolicyController;
-use App\Http\Controllers\User\WishlistController;
-use App\Http\Controllers\TermsConditionController;
-use App\Http\Controllers\User\UserServiceController;
-use App\Http\Controllers\Category\RCategoryController;
-use App\Http\Controllers\Barbar\BSalonServiceController;
-use App\Http\Controllers\SuperAdminDashboard\FaqController;
-use App\Http\Controllers\SuperAdminDashboard\ChatController;
-use App\Http\Controllers\SuperAdminDashboard\UserController;
-use App\Http\Controllers\SuperAdminDashboard\SalonController;
-use App\Http\Controllers\Porfessional\ManageSchedulController;
-use App\Http\Controllers\SuperAdminDashboard\DashboardController;
-use App\Http\Controllers\SuperAdminDashboard\ManageAdminController;
-use App\Http\Controllers\SuperAdminDashboard\NotificationController;
-use App\Http\Controllers\SuperAdminDashboard\EShop\ProductController;
-use App\Http\Controllers\SuperAdminDashboard\Slider\SliderController;
-use App\Http\Controllers\SuperAdminDashboard\EShop\ECategoryController;
-use App\Http\Controllers\SuperAdminDashboard\OrderTransactionController;
-use App\Http\Controllers\SuperAdminDashboard\ManageHaircutOfferController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -227,7 +227,7 @@ Route::middleware(['user', 'auth:api'])->group(function () {
     Route::post('buy-service-success', [StripeController::class, 'buyServiceSuccess']);
     Route::post('generate-payment-link', [StripeController::class, 'generatePaymentLink']);
 });
-
+Route::get('/stripe/onboarding/callback', [StripeController::class, 'stripeOnboardingCallback']);
 Route::resource('/sliders', SliderController::class)->only('index');
 // Route::get('/e-shop', [UserServiceController::class, 'eShopProduct']);
 

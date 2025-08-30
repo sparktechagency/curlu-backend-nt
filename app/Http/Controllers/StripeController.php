@@ -43,11 +43,14 @@ class StripeController extends Controller
                     'transfers'     => ['requested' => true],
                 ],
             ]);
-            $customReturnUrl = url("/connected?status=success&email={$user->email}&account_id={$account->id}");
+
+            $returnUrl = url("/api/stripe/onboarding/callback?email={$user->email}&account_id={$account->id}");
+            $refreshUrl = url("/api/stripe/onboarding/callback?email={$user->email}&account_id={$account->id}");
+
             $accountLink     = AccountLink::create([
                 'account'     => $account->id,
-                'refresh_url' => url('/vendor/reauth'),
-                'return_url'  => $customReturnUrl,
+                'refresh_url' => $refreshUrl,
+                'return_url'  => $returnUrl,
                 'type'        => 'account_onboarding',
             ]);
 
@@ -58,6 +61,51 @@ class StripeController extends Controller
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+  public function stripeOnboardingCallback(Request $request)
+    {
+        $email = $request->query('email');
+        $tempAccountId = $request->query('account_id');
+
+        if (!$email || !$tempAccountId) {
+            //  Log::error('status' => false, 'message' => 'Missing email or temp_account ID.');
+            // return response()->json(['status' => false, 'message' => 'Missing email or temp_account ID.'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            // return response()->json(['status' => false, 'message' => 'User not found.'], 404);
+        }
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            $account = Account::retrieve($tempAccountId);
+
+            if ($account->charges_enabled && $account->payouts_enabled) {
+
+                $user->stripe_account_id = $tempAccountId;
+                $user->save();
+
+                // return response()->json([
+                //     'status' => true,
+                //     'message' => 'Onboarding complete & verified.',
+                // ]);
+            } else {
+                // return response()->json([
+                //     'status' => false,
+                //     'message' => 'Onboarding not yet completed.',
+                // ]);
+            }
+        } catch (Exception $e) {
+            Log::error('Stripe retrieve failed: ' . $e->getMessage());
+            // return response()->json([
+            //     'status' => false,
+            //     'message' => 'Something went wrong while checking Stripe account.',
+            //     'error' => $e->getMessage(),
+            // ], 500);
         }
     }
 
