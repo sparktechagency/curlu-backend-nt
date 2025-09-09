@@ -122,6 +122,7 @@ Route::middleware(['professional', 'auth:api'])->group(function () {
 
     Route::get('earning', [OrderController::class, 'myEarning']);
     Route::get('qr-scan/{invoice_number}', [OrderHistory::class, 'qrScan']);
+    Route::post('create-login-link', [StripeController::class, 'createLoginLink']);
 
 });
 

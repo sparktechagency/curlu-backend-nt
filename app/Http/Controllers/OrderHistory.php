@@ -1,15 +1,19 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Order;
-use App\Models\Salon;
+use App\Models\PaymentDetail;
 use App\Models\Review;
+use App\Models\Salon;
 use App\Models\SalonInvoice;
 use App\Models\SalonService;
+use App\Models\User;
+use App\Notifications\OrderConfirmNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Notifications\OrderConfirmNotification;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
+use Stripe\Transfer;
 
 class OrderHistory extends Controller
 {
@@ -49,18 +53,43 @@ class OrderHistory extends Controller
 
     public function qrScan($id)
     {
-        $salon_invoice         = SalonInvoice::with('user')->where('invoice_number', $id)->first();
-        $salon_invoice->status = 'Past';
-        $salon_invoice->save();
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+        $salon_invoice = SalonInvoice::with('user')->where('invoice_number', $id)->first();
+        $salon         = Salon::where('id', $salon_invoice->salon_id)->first();
+        $professional  = User::where('id', $salon->user_id)->first();
 
-        $order=Order::where('invoice_number',$id)->first();
-        $order->status='completed';
-        $order->save();
+        $order = Order::where('invoice_number', $id)->first();
 
+        $payment_details = PaymentDetail::where('invoice_number', $id)->first();
+        if ($payment_details && $payment_details->transferred == 0) {
 
-        $salon=Salon::findOrFail($salon_invoice->salon_id);
+            $paymentIntent = PaymentIntent::retrieve([
+                'id'     => $payment_details->stripe_payment_id,
+                'expand' => ['charges'],
+            ]);
+
+            if ($paymentIntent->status === 'succeeded') {
+
+                $chargeId      = $paymentIntent->latest_charge;
+                $salon_earning = $salon_invoice->salon_earning;
+                $transfer      = Transfer::create([
+                    'amount'             => $salon_earning * 100,
+                    'currency'           => 'eur',
+                    'destination'        => $professional->stripe_account_id,
+                    'source_transaction' => $chargeId,
+                ]);
+
+                $payment_details->transferred = 1;
+                $payment_details->save();
+                $order->status = 'completed';
+                $order->save();
+                $salon_invoice->status = 'Past';
+                $salon_invoice->save();
+            }
+        }
+        $salon             = Salon::findOrFail($salon_invoice->salon_id);
         $service_name      = SalonService::where('id', $salon_invoice->service_id)->first();
-        $salon_details=User::find($salon->user_id);
+        $salon_details     = User::find($salon->user_id);
         $notification_data = [
             'service_name' => $service_name->service_name,
             'salon_name'   => $salon_details->name . ' ' . $salon_details->last_name,

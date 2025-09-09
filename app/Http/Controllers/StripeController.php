@@ -36,7 +36,7 @@ class StripeController extends Controller
         try {
             $account = Account::create([
                 'type'         => 'express',
-                'country'      => 'GB',
+                'country'      => 'FR',
                 'email'        => $user->email,
                 'capabilities' => [
                     'card_payments' => ['requested' => true],
@@ -44,10 +44,10 @@ class StripeController extends Controller
                 ],
             ]);
 
-            $returnUrl = url("/api/stripe/onboarding/callback?email={$user->email}&account_id={$account->id}");
+            $returnUrl  = url("/api/stripe/onboarding/callback?email={$user->email}&account_id={$account->id}");
             $refreshUrl = url("/api/stripe/onboarding/callback?email={$user->email}&account_id={$account->id}");
 
-            $accountLink     = AccountLink::create([
+            $accountLink = AccountLink::create([
                 'account'     => $account->id,
                 'refresh_url' => $refreshUrl,
                 'return_url'  => $returnUrl,
@@ -64,18 +64,18 @@ class StripeController extends Controller
         }
     }
 
-  public function stripeOnboardingCallback(Request $request)
+    public function stripeOnboardingCallback(Request $request)
     {
-        $email = $request->query('email');
+        $email         = $request->query('email');
         $tempAccountId = $request->query('account_id');
 
-        if (!$email || !$tempAccountId) {
+        if (! $email || ! $tempAccountId) {
             //  Log::error('status' => false, 'message' => 'Missing email or temp_account ID.');
             // return response()->json(['status' => false, 'message' => 'Missing email or temp_account ID.'], 400);
         }
 
         $user = User::where('email', $email)->first();
-        if (!$user) {
+        if (! $user) {
             // return response()->json(['status' => false, 'message' => 'User not found.'], 404);
         }
 
@@ -121,7 +121,7 @@ class StripeController extends Controller
             return response()->json(['status' => false, 'message' => $validator->errors()], 400);
         }
 
-        $price                 = $request->price;
+        $price = $request->price;
 
         $platformFeePercentage = PlatformFee::first()->curlu_earning;
         $totalAmount           = (int) ($price * 100);
@@ -149,13 +149,10 @@ class StripeController extends Controller
 
         try {
             $paymentIntent = PaymentIntent::create([
-                'amount'                 => $totalAmount,
-                'currency'               => 'usd',
-                'payment_method'         => $request->payment_method,
-                'transfer_data'          => [
-                    'destination' => $professionalStripeAccountId,
-                ],
-                'application_fee_amount' => $platformFee,
+                'amount'               => $totalAmount,
+                'currency'             => 'eur',
+                'payment_method'       => $request->payment_method,
+                'payment_method_types' => ['card'],
             ]);
 
             return response()->json([
@@ -181,11 +178,11 @@ class StripeController extends Controller
             return response()->json(['status' => false, 'message' => $validator->errors()], 400);
         }
 
-        $invoice_number = rand(1000000, 90000000);
-        $price          = $request->price;
+        $invoice_number        = rand(1000000, 90000000);
+        $price                 = $request->price;
         $platformFeePercentage = PlatformFee::first()->curlu_earning;
-        $curlu_earning  = ($price * $platformFeePercentage) / 100;
-        $salon_earning  = $price - $curlu_earning;
+        $curlu_earning         = ($price * $platformFeePercentage) / 100;
+        $salon_earning         = $price - $curlu_earning;
 
         $payment_detail = PaymentDetail::create([
             'user_id'           => Auth::user()->id,
@@ -292,12 +289,6 @@ class StripeController extends Controller
                     'quantity'   => 1,
                 ]],
                 'mode'                 => 'payment',
-                'payment_intent_data'  => [
-                    'application_fee_amount' => $platformFee,
-                    'transfer_data'          => [
-                        'destination' => $professional->stripe_account_id,
-                    ],
-                ],
                 'success_url'          => url('/payment-success') . '?session_id={CHECKOUT_SESSION_ID}&user_id=' . Auth::user()->id .
                 '&user_email=' . Auth::user()->email . '&salon_id=' . $request->salon_id .
                 '&service_id=' . $request->service_id . '&price=' . $request->price .
@@ -318,6 +309,34 @@ class StripeController extends Controller
             }
         } catch (Exception $e) {
             return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Create Login Link (Connected Account Dashboard Access)
+    public function createLoginLink(Request $request)
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+        try {
+            $user = Auth::user();
+            if (! $user->stripe_account_id) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'No Stripe account found. Create an account first.',
+                ], 422);
+
+            }
+
+            $loginLink = Account::createLoginLink($user->stripe_account_id);
+            return response()->json([
+                'status'  => true,
+                'message' => 'Stripe login link created successfully.',
+                'data'    => $loginLink,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 }

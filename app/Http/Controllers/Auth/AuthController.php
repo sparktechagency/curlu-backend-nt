@@ -228,7 +228,7 @@ if ($user->role_type == 'PROFESSIONAL') {
 
     return response()->json([
         'user'   => $user,
-        'rating' => number_format($avg_rating ?? 0, 1), 
+        'rating' => number_format($avg_rating ?? 0, 1),
     ]);
 }
 
