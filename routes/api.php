@@ -173,6 +173,7 @@ Route::middleware(['admin.professional.user', 'auth:api'])->group(function () {
     Route::get('qr-order-history', [OrderHistory::class, 'orderHistory']);
     Route::get('qr-order-history-single/{id}', [OrderHistory::class, 'orderHistorysingle']);
 
+    Route::get('/get-stores-location', [AuthController::class, 'getStoresByLocation']);
     // notification
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notification/markread/{id}', [NotificationController::class, 'markRead']);

@@ -221,16 +221,16 @@ class AuthController extends Controller
     {
         if ($this->guard()->user()) {
             $user = $this->guard()->user();
-if ($user->role_type == 'PROFESSIONAL') {
-    $salon = $user->salon;
+            if ($user->role_type == 'PROFESSIONAL') {
+                $salon = $user->salon;
 
-    $avg_rating = Review::where('salon_id', $salon->user_id)->avg('rating');
+                $avg_rating = Review::where('salon_id', $salon->user_id)->avg('rating');
 
-    return response()->json([
-        'user'   => $user,
-        'rating' => number_format($avg_rating ?? 0, 1),
-    ]);
-}
+                return response()->json([
+                    'user'   => $user,
+                    'rating' => number_format($avg_rating ?? 0, 1),
+                ]);
+            }
 
             return response()->json([
                 'user' => $user,
@@ -598,4 +598,43 @@ if ($user->role_type == 'PROFESSIONAL') {
             'message' => 'User login successfully.',
             'data'    => $success], 200);
     }
+
+    public function getStoresByLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'sw_lat'      => 'required|numeric|between:-90,90',
+            'sw_lng'      => 'required|numeric|between:-180,180',
+            'ne_lat'      => 'required|numeric|between:-90,90',
+            'ne_lng'      => 'required|numeric|between:-180,180',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $users = User::with('salon')
+            ->where('role_type', 'PROFESSIONAL')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereBetween('latitude', [$validated['sw_lat'], $validated['ne_lat']])
+            ->whereBetween('longitude', [$validated['sw_lng'], $validated['ne_lng']])
+            ->when($request->search, function ($q) use ($request) {
+                $q->where('address', 'LIKE', '%' . $request->search . '%');
+            })
+            ->get()
+            ->filter(function ($user) use ($request) {
+                return $user->salon && $user->salon->salon_services->contains('category_id', $request->category_id);
+            })
+            ->values();
+
+        $users->each(function ($user) {
+            if ($user->salon) {
+                unset($user->salon->salon_services);
+            }
+        });
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Professional users retrieved successfully.',
+            'data'    => $users,
+        ]);
+    }
+
 }
