@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         if ($user) {
             $random = Str::random(6);
-            Mail::to($request->email)->send(new OtpMail($random));
+            Mail::to($request->email)->send(new OtpMail($random,'register'));
             $user->otp               = $random;
             $user->email_verified_at = now();
             $user->save();
@@ -72,7 +72,7 @@ class AuthController extends Controller
                 }
                 $user->save();
 
-                Mail::to($request->email)->send(new OtpMail($user->otp));
+                Mail::to($request->email)->send(new OtpMail($user->otp,'register'));
                 return response()->json([
                     'message' => 'Please check your email to valid your email',
                 ]);
@@ -130,7 +130,7 @@ class AuthController extends Controller
                     $scheduleTime->capacity     = 1;
                     $scheduleTime->save();
                     DB::commit();
-                    Mail::to($request->email)->send(new OtpMail($user->otp));
+                    Mail::to($request->email)->send(new OtpMail($user->otp,'register'));
                     return response()->json([
                         'message' => 'Please check your email to valid your email',
                     ]);
@@ -252,7 +252,7 @@ class AuthController extends Controller
             ], 400);
         } else {
             $random = Str::random(6);
-            Mail::to($request->email)->send(new OtpMail($random));
+            Mail::to($request->email)->send(new OtpMail($random,'reset_password'));
             $user->otp               = $random;
             $user->email_verified_at = now();
             $user->save();
@@ -306,7 +306,7 @@ class AuthController extends Controller
 
         // Generate new OTP
         $newOtp = rand(100000, 999999);
-        Mail::to($user->email)->send(new OtpMail($newOtp));
+        Mail::to($user->email)->send(new OtpMail($newOtp,'reset_password'));
 
         // Update user data
         $user->update(['otp' => $newOtp]);

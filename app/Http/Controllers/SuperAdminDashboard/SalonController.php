@@ -80,7 +80,7 @@ class SalonController extends Controller
             }
             $salon->save();
             DB::commit();
-            Mail::to($request->email)->send(new OtpMail($user->otp));
+            Mail::to($request->email)->send(new OtpMail($user->otp,'register'));
             return response()->json([
                 'message' => 'Please check your email to valid your email',
             ]);
