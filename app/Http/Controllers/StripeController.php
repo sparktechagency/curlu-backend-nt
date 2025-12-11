@@ -112,9 +112,9 @@ class StripeController extends Controller
     public function buyServiceIntent(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'service_id'     => 'required|numeric',
-            'price'          => 'required|numeric',
-            'payment_method' => 'required|string',
+            'service_id' => 'required|numeric',
+            'price'      => 'required|numeric',
+            // 'payment_method' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -149,12 +149,13 @@ class StripeController extends Controller
 
         try {
             $paymentIntent = PaymentIntent::create([
-                'amount'               => $totalAmount,
-                'currency'             => 'eur',
-                'payment_method'       => $request->payment_method,
-                'payment_method_types' => ['card'],
+                'amount'                    => $totalAmount,
+                'currency'                  => 'eur',
+                // 'application_fee_amount'    => $platformFee,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
             ]);
-
             return response()->json([
                 'status' => true,
                 'data'   => $paymentIntent,
